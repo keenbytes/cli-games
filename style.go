@@ -11,7 +11,7 @@ const (
 	W
 )
 
-type FrameStyle interface{
+type FrameStyle interface {
 	C() [8]string
 	L() int
 	R() int

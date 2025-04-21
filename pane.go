@@ -27,25 +27,25 @@ const (
 )
 
 type Pane struct {
-	left int
-	top int
-	width int
-	height int
-	canvasLeft int
-	canvasTop int
-	canvasWidth int
-	canvasHeight int
-	minWidth int
-	minHeight int
-	tooSmall bool
-	splitType int
+	left            int
+	top             int
+	width           int
+	height          int
+	canvasLeft      int
+	canvasTop       int
+	canvasWidth     int
+	canvasHeight    int
+	minWidth        int
+	minHeight       int
+	tooSmall        bool
+	splitType       int
 	splitSizeTarget int
-	splitSize int
-	splitUnit int
-	panes [2]*Pane
-	frame FrameStyle
-	ui *TermUI
-	Widget Widget
+	splitSize       int
+	splitUnit       int
+	panes           [2]*Pane
+	frame           FrameStyle
+	ui              *TermUI
+	Widget          Widget
 }
 
 // Split creates new two panes by splitting this pane either horizontally or vertically.
@@ -77,7 +77,7 @@ func (p *Pane) Write(x, y int, content string) {
 // WriteNoFrame writes a specific utf8 string in the pane and position coordinates ignore the frame
 // so it can be overwritten.
 func (p *Pane) WriteNoFrame(x, y int, content string) {
-	p.ui.Write(p.left + x, p.top + y, content)
+	p.ui.Write(p.left+x, p.top+y, content)
 }
 
 // Clear fill the pane canvas with space characters
@@ -116,7 +116,7 @@ func (p *Pane) setWidth(w int) {
 			return
 		}
 		p.tooSmall = false
-		p.panes[0].left, p.panes[1].left = p.left, p.left + v1
+		p.panes[0].left, p.panes[1].left = p.left, p.left+v1
 		p.panes[0].setWidth(v1)
 		p.panes[1].setWidth(v2)
 	default:
@@ -252,12 +252,12 @@ func (p *Pane) renderFrame() {
 	}
 	if p.frame.L() > 0 {
 		for x := 0; x < p.canvasHeight; x++ {
-			p.WriteNoFrame(0, p.frame.T() + x, c[W])
+			p.WriteNoFrame(0, p.frame.T()+x, c[W])
 		}
 	}
 	if p.frame.R() > 0 {
 		for x := 0; x < p.canvasHeight; x++ {
-			p.WriteNoFrame(p.width-1, p.frame.T() + x, c[E])
+			p.WriteNoFrame(p.width-1, p.frame.T()+x, c[E])
 		}
 	}
 }

@@ -1,6 +1,7 @@
 package termui
 
-type FrameRight struct {}
+type FrameRight struct{}
+
 func (s FrameRight) C() [8]string {
 	return [8]string{"", "", "", "│", "", "", "", ""}
 }
@@ -16,4 +17,3 @@ func (s FrameRight) T() int {
 func (s FrameRight) B() int {
 	return 0
 }
-

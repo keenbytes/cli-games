@@ -10,7 +10,7 @@ type WidgetBackend struct {
 	cachedValue string
 }
 
-func (w *WidgetBackend) Render(pane *Pane) {	
+func (w *WidgetBackend) Render(pane *Pane) {
 }
 
 func (w WidgetBackend) Iterate(pane *Pane) {

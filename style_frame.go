@@ -1,7 +1,7 @@
 package termui
 
+type Frame struct{}
 
-type Frame struct {}
 func (s Frame) C() [8]string {
 	return [8]string{"┌", "─", "┐", "│", "┘", "─", "└", "│"}
 }
@@ -17,4 +17,3 @@ func (s Frame) T() int {
 func (s Frame) B() int {
 	return 1
 }
-

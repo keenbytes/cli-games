@@ -5,9 +5,9 @@ import (
 	"time"
 )
 
-type WidgetTime struct {}
+type WidgetTime struct{}
 
-func (w *WidgetTime) Render(pane *Pane) {	
+func (w *WidgetTime) Render(pane *Pane) {
 }
 
 func (w WidgetTime) Iterate(pane *Pane) {

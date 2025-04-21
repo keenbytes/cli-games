@@ -11,13 +11,13 @@ import (
 )
 
 type TermUI struct {
-	stdout *os.File
-	stderr *os.File
-	width int
-	height int
-	pane *Pane
+	stdout        *os.File
+	stderr        *os.File
+	width         int
+	height        int
+	pane          *Pane
 	iterablePanes []*Pane
-	backendPanes []*Pane
+	backendPanes  []*Pane
 }
 
 func NewTermUI() *TermUI {
@@ -47,7 +47,7 @@ func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int 
 	for _, pane := range t.backendPanes {
 		ctx, cancel := context.WithCancel(context.Background())
 		backendCancelFuncs = append(backendCancelFuncs, cancel)
-		go pane.Widget.Backend(ctx)	
+		go pane.Widget.Backend(ctx)
 	}
 
 	done := make(chan struct{}, 1)
@@ -78,7 +78,7 @@ func (t *TermUI) getIterablePanes(pane *Pane) {
 		return
 	}
 
-	switch (pane.splitType) {
+	switch pane.splitType {
 	case Horizontally, Vertically:
 		t.getIterablePanes(pane.panes[0])
 		t.getIterablePanes(pane.panes[1])
@@ -101,7 +101,7 @@ func (t *TermUI) loop(ctx context.Context, done chan<- struct{}, backendCancelFu
 				fn()
 			}
 			t.exit()
-			done<-struct{}{}
+			done <- struct{}{}
 		case <-ticker.C:
 			sizeChanged := t.refreshSize()
 			if sizeChanged {

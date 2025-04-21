@@ -1,6 +1,7 @@
 package termui
 
-type NoFrame struct {}
+type NoFrame struct{}
+
 func (s NoFrame) C() [8]string {
 	return [8]string{"", "", "", "", "", "", "", ""}
 }
