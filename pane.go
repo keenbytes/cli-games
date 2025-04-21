@@ -45,6 +45,7 @@ type Pane struct {
 	panes [2]*Pane
 	frame FrameStyle
 	ui *TermUI
+	Widget Widget
 }
 
 // Split creates new two panes by splitting this pane either horizontally or vertically.
@@ -62,6 +63,7 @@ func (p *Pane) Split(typ int, sizeTarget int, size int, unit int) (*Pane, *Pane)
 	return p.panes[0], p.panes[1]
 }
 
+// Write writes a specific utf8 string on the pane canvas (so inside the frames)
 func (p *Pane) Write(x, y int, content string) {
 	cx, cy := p.canvasLeft+x, p.canvasTop+y
 	length := utf8.RuneCountInString(content)
@@ -72,14 +74,24 @@ func (p *Pane) Write(x, y int, content string) {
 	}
 }
 
+// WriteNoFrame writes a specific utf8 string in the pane and position coordinates ignore the frame
+// so it can be overwritten.
 func (p *Pane) WriteNoFrame(x, y int, content string) {
-	/*if p.splitType == Horizontally || p.splitType == Vertically {
-		return
-	}
-	if p.tooSmall {
-		return
-	}*/
 	p.ui.Write(p.left + x, p.top + y, content)
+}
+
+// Clear fill the pane canvas with space characters
+func (p *Pane) Clear() {
+	for line := range p.canvasHeight {
+		p.ui.Write(p.canvasLeft, p.canvasTop+line, strings.Repeat(" ", p.canvasWidth))
+	}
+}
+
+// Clear fill the whole pane with space characters (overwrites frame)
+func (p *Pane) ClearNoFrame() {
+	for line := range p.height {
+		p.ui.Write(0, line, strings.Repeat(" ", p.width))
+	}
 }
 
 // setWidth sets width of pane, checks if it's not too small for the content (search for 'minimal width')
@@ -251,4 +263,7 @@ func (p *Pane) renderFrame() {
 }
 
 func (p *Pane) iterate() {
+	if p.Widget != nil {
+		p.Widget.Iterate(p)
+	}
 }

@@ -1,11 +1,10 @@
 package termui
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"os/signal"
 	"strconv"
-	"syscall"
 	"time"
 
 	"gopkg.pl/mikogs/termui/pkg/term"
@@ -17,6 +16,8 @@ type TermUI struct {
 	width int
 	height int
 	pane *Pane
+	iterablePanes []*Pane
+	backendPanes []*Pane
 }
 
 func NewTermUI() *TermUI {
@@ -34,18 +35,23 @@ func (t *TermUI) Pane() *Pane {
 }
 
 // Run clears the terminal and starts program's main loop
-func (t *TermUI) Run(stdout *os.File, stderr *os.File) int {
+func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int {
 	t.stdout = stdout
 	t.stderr = stderr
 	term.InitTTY()
 	term.Clear(t.stdout)
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	t.getIterablePanes(nil)
+	backendCancelFuncs := make([]context.CancelFunc, 0, len(t.backendPanes))
+
+	for _, pane := range t.backendPanes {
+		ctx, cancel := context.WithCancel(context.Background())
+		backendCancelFuncs = append(backendCancelFuncs, cancel)
+		go pane.Widget.Backend(ctx)	
+	}
 
 	done := make(chan struct{}, 1)
-
-	go t.loop(sigs, done)
+	go t.loop(ctx, done, backendCancelFuncs)
 	<-done
 
 	return 0
@@ -63,13 +69,37 @@ func (t *TermUI) Write(x int, y int, s string) {
 	fmt.Fprint(t.stdout, s)
 }
 
+// RefreshIterablePanes loops through all the panes and gets the ones that are not a split
+func (t *TermUI) getIterablePanes(pane *Pane) {
+	if pane == nil {
+		t.iterablePanes = make([]*Pane, 0)
+		t.backendPanes = make([]*Pane, 0)
+		t.getIterablePanes(t.pane)
+		return
+	}
+
+	switch (pane.splitType) {
+	case Horizontally, Vertically:
+		t.getIterablePanes(pane.panes[0])
+		t.getIterablePanes(pane.panes[1])
+	default:
+		t.iterablePanes = append(t.iterablePanes, pane)
+		if pane.Widget != nil && pane.Widget.HasBackend() {
+			t.backendPanes = append(t.backendPanes, pane)
+		}
+	}
+}
+
 // loop is the main program loop
-func (t *TermUI) loop(sigs <-chan os.Signal, done chan<- struct{}) {
+func (t *TermUI) loop(ctx context.Context, done chan<- struct{}, backendCancelFuncs []context.CancelFunc) {
 	ticker := time.NewTicker(500 * time.Millisecond)
 
 	for {
 		select {
-		case <-sigs:
+		case <-ctx.Done():
+			for _, fn := range backendCancelFuncs {
+				fn()
+			}
 			t.exit()
 			done<-struct{}{}
 		case <-ticker.C:
@@ -78,7 +108,11 @@ func (t *TermUI) loop(sigs <-chan os.Signal, done chan<- struct{}) {
 				term.Clear(t.stdout)
 				t.pane.render()
 			}
-			t.pane.iterate()
+			if len(t.iterablePanes) > 0 {
+				for _, pane := range t.iterablePanes {
+					pane.iterate()
+				}
+			}
 		}
 	}
 }
