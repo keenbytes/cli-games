@@ -94,13 +94,13 @@ func (p *Pane) ClearNoFrame() {
 	}
 }
 
-// GetCanvasWidth returns canvas width
-func (p *Pane) GetCanvasWidth() int {
+// CanvasWidth returns canvas width
+func (p *Pane) CanvasWidth() int {
 	return p.canvasWidth
 }
 
-// GetCanvasHeight returns canvas height
-func (p *Pane) GetCanvasHeight() int {
+// CanvasHeight returns canvas height
+func (p *Pane) CanvasHeight() int {
 	return p.canvasHeight
 }
 
