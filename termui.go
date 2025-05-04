@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"gopkg.pl/mikogs/termui/pkg/term"
@@ -18,6 +19,7 @@ type TermUI struct {
 	pane          *Pane
 	iterablePanes []*Pane
 	backendPanes  []*Pane
+	mutex sync.Mutex
 }
 
 func NewTermUI() *TermUI {
@@ -59,6 +61,7 @@ func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int 
 
 // Write prints out on the terminal window at a specified position
 func (t *TermUI) Write(x int, y int, s string) {
+	t.mutex.Lock()
 	fmt.Fprintf(t.stdout, "\u001b[1000A\u001b[1000D")
 	if x > 0 {
 		fmt.Fprintf(t.stdout, "\u001b["+strconv.Itoa(x)+"C")
@@ -67,6 +70,7 @@ func (t *TermUI) Write(x int, y int, s string) {
 		fmt.Fprintf(t.stdout, "\u001b["+strconv.Itoa(y)+"B")
 	}
 	fmt.Fprint(t.stdout, s)
+	t.mutex.Unlock()
 }
 
 // RefreshIterablePanes loops through all the panes and gets the ones that are not a split
