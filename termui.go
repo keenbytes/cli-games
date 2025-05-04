@@ -51,7 +51,6 @@ func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int 
 	}
 
 	done := make(chan struct{}, 1)
-	defer close(done)
 	go t.loop(ctx, done, backendCancelFuncs)
 	<-done
 
