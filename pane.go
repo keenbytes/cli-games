@@ -94,6 +94,16 @@ func (p *Pane) ClearNoFrame() {
 	}
 }
 
+// GetCanvasWidth returns canvas width
+func (p *Pane) GetCanvasWidth() int {
+	return p.canvasWidth
+}
+
+// GetCanvasHeight returns canvas height
+func (p *Pane) GetCanvasHeight() int {
+	return p.canvasHeight
+}
+
 // setWidth sets width of pane, checks if it's not too small for the content (search for 'minimal width')
 // and calls panes inside to set their width as well.
 func (p *Pane) setWidth(w int) {
