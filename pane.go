@@ -237,6 +237,10 @@ func (p *Pane) render() {
 	}
 
 	p.renderFrame()
+
+	if p.Widget != nil {
+		p.Widget.Render(p)
+	}
 }
 
 func (p *Pane) renderFrame() {
