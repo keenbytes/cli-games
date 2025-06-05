@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.pl/mikogs/termui/pkg/term"
+	"github.com/keenbytes/termui/pkg/term"
 )
 
 type TermUI struct {

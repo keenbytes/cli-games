@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	t "gopkg.pl/mikogs/termui"
+	t "github.com/keenbytes/termui"
 )
 
 func main() {

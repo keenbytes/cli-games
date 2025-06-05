@@ -1,5 +1,5 @@
 # termui
-[![Go Reference](https://pkg.go.dev/badge/gopkg.pl/mikogs/termui.svg)](https://pkg.go.dev/gopkg.pl/mikogs/termui) [![Go Report Card](https://goreportcard.com/badge/gopkg.pl/mikogs/termui)](https://goreportcard.com/report/gopkg.pl/mikogs/termui)
+[![Go Reference](https://pkg.go.dev/badge/github.com/keenbytes/termui.svg)](https://pkg.go.dev/github.com/keenbytes/termui) [![Go Report Card](https://goreportcard.com/badge/github.com/keenbytes/termui)](https://goreportcard.com/report/github.com/keenbytes/termui)
 
 ![termui](termui.png "termui")
 

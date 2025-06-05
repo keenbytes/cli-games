@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"gopkg.pl/mikogs/termui"
+	"github.com/keenbytes/termui"
 )
 
 type widgetTime struct {}
