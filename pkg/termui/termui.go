@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keenbytes/termui/pkg/term"
+	"github.com/keenbytes/cli-games/pkg/term"
 )
 
 type TermUI struct {

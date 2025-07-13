@@ -1,3 +1,5 @@
-module github.com/keenbytes/termui
+module github.com/keenbytes/cli-games
 
-go 1.22.1
+go 1.24.5
+
+require github.com/keenbytes/broccli/v3 v3.0.2

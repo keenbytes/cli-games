@@ -24,4 +24,5 @@ go.work.sum
 # env file
 .env
 
-/cmd/example_app/example_app
+/cmd/ortotris/ortotris
+/cmd/lettersnake/lettersnake
