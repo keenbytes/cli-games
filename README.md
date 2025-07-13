@@ -1,6 +1,6 @@
 # CLI Games monorepo
 
-This repository contains small termina- based games designed for my kids.
+This repository contains small terminal-based games designed for my kids.
 
 ## Lettersnake
 
@@ -8,7 +8,7 @@ The concept is that you get a word in one language and you need to collect lette
 
 See screenshot below:
 
-![Lettersnake](screenshot.png)
+![Lettersnake](lettersnake.png)
 
 ### Running
 
@@ -40,7 +40,7 @@ It is inspired by the classic DOS game Ortotris, released in 1992, which was sim
 
 See screenshot below:
 
-![Ortotris](screenshot.png)
+![Ortotris](ortotris.png)
 
 ### Running
 
