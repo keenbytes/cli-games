@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keenbytes/termui/pkg/term"
+	"github.com/keenbytes/cli-games/pkg/term"
 )
 
 type TermUI struct {
@@ -64,10 +64,10 @@ func (t *TermUI) Write(x int, y int, s string) {
 	t.mutex.Lock()
 	fmt.Fprintf(t.stdout, "\u001b[1000A\u001b[1000D")
 	if x > 0 {
-		fmt.Fprintf(t.stdout, "\u001b["+strconv.Itoa(x)+"C")
+		fmt.Fprintf(t.stdout, "\u001b[%sC", strconv.Itoa(x))
 	}
 	if y > 0 {
-		fmt.Fprintf(t.stdout, "\u001b["+strconv.Itoa(y)+"B")
+		fmt.Fprintf(t.stdout, "\u001b[%sB", strconv.Itoa(y))
 	}
 	fmt.Fprint(t.stdout, s)
 	t.mutex.Unlock()
