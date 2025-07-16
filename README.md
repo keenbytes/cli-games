@@ -2,7 +2,7 @@
 
 This repository contains small terminal-based games designed for my kids.
 
-![#lettersnake](lettersnake-logo.png "lettersnake") ![#ortotris](ortotris-logo.png "ortotris")
+[![lettersnake](lettersnake-logo.png "lettersnake")](#lettersnake) [![ortotris](ortotris-logo.png "ortotris")](#ortotris)
 
 ## Lettersnake
 
