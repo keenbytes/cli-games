@@ -54,20 +54,24 @@ func (w *wordsPane) Backend(ctx context.Context) {
 				if line > 0 {
 					clearPaneLine(w.pane, line)
 				}
+
 				line = w.g.CurrentLine()
 				if line > 0 {
 					clearPaneLine(w.pane, line)
 				}
+
 				clearPaneLine(w.pane, line+1)
 			case ortotris.WrongAnswer, ortotris.ContinueGame:
 				line := w.g.PrevCurrentLine()
 				if line > 0 {
 					clearPaneLine(w.pane, line)
 				}
+
 				line = w.g.CurrentLine()
 				if line > 0 {
 					clearPaneLine(w.pane, line)
 				}
+
 				w.writeWord(w.pane, w.g.CurrentWord(), line+1)
 			default:
 			}
@@ -92,9 +96,11 @@ func (w *wordsPane) drawInitial(pane *termui.Pane) {
 		pane.Write(1, 12, "Selected game")
 		pane.Write(1, 13, "-------------")
 		pane.Write(1, 14, w.g.Title())
+
 		return
 	case ortotris.GameOver:
 		pane.Write(2, 0, "** Game over! **")
+
 		return
 	default:
 	}

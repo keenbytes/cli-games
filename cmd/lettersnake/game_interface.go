@@ -10,12 +10,12 @@ import (
 )
 
 type gameInterface struct {
-	tui         *termui.TermUI
-	game        *termui.Pane
-	score       *termui.Pane
-	leftWord    *termui.Pane
-	rightWord   *termui.Pane
-	g           *lettersnake.Game
+	tui       *termui.TermUI
+	game      *termui.Pane
+	score     *termui.Pane
+	leftWord  *termui.Pane
+	rightWord *termui.Pane
+	g         *lettersnake.Game
 }
 
 func newGameInterface(g *lettersnake.Game, speed int) *gameInterface {
@@ -28,7 +28,12 @@ func newGameInterface(g *lettersnake.Game, speed int) *gameInterface {
 	paneScore, _bottom := mainPane.Split(termui.Horizontally, termui.Left, 3, termui.Char)
 	paneGame, _bottomBottom := _bottom.Split(termui.Horizontally, termui.Right, 3, termui.Char)
 
-	paneLeftWord, paneRightWord := _bottomBottom.Split(termui.Vertically, termui.Right, 50, termui.Percent)
+	paneLeftWord, paneRightWord := _bottomBottom.Split(
+		termui.Vertically,
+		termui.Right,
+		50,
+		termui.Percent,
+	)
 
 	paneScore.Widget = &scorePane{g: g}
 	paneLeftWord.Widget = &leftWordPane{g: g}
@@ -41,7 +46,7 @@ func newGameInterface(g *lettersnake.Game, speed int) *gameInterface {
 	gui.rightWord = paneRightWord
 
 	gui.tui.SetFrame(&termui.Frame{}, paneGame, paneScore, paneLeftWord, paneRightWord)
-	
+
 	return gui
 }
 
@@ -54,25 +59,28 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 	go func() {
 		gui.tui.Run(ctx, os.Stdout, os.Stderr)
 		wg.Done()
+
 		stopStdio = true
 	}()
 
 	go func() {
-		var b []byte = make([]byte, 1)
-		for {
-			if stopStdio {
-				break
-			}
+		b := make([]byte, 1)
+
+		for !stopStdio {
+
 			os.Stdin.Read(b)
 			// key press code here
 			if string(b) == "x" {
 				cancel()
+
 				break
 			}
+
 			if string(b) == "s" {
 				if gui.g.State() != lettersnake.GameOn {
 					gui.g.StartGame()
 				}
+
 				continue
 			}
 			// TODO: Keys should be handled differently, maybe in raw mode
@@ -81,6 +89,7 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 				if gui.g.Direction() != lettersnake.Right {
 					gui.g.SetDirection(lettersnake.Left)
 				}
+
 				continue
 			}
 			// right arrow pressed
@@ -88,6 +97,7 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 				if gui.g.Direction() != lettersnake.Left {
 					gui.g.SetDirection(lettersnake.Right)
 				}
+
 				continue
 			}
 			// down arrow pressed
@@ -95,6 +105,7 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 				if gui.g.Direction() != lettersnake.Up {
 					gui.g.SetDirection(lettersnake.Down)
 				}
+
 				continue
 			}
 			// up arrow pressed
@@ -102,9 +113,11 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 				if gui.g.Direction() != lettersnake.Down {
 					gui.g.SetDirection(lettersnake.Up)
 				}
+
 				continue
 			}
 		}
+
 		wg.Done()
 	}()
 

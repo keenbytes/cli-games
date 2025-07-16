@@ -11,9 +11,9 @@ import (
 )
 
 type gamePane struct {
-	g              *lettersnake.Game
-	pane           *termui.Pane
-	speed          int
+	g     *lettersnake.Game
+	pane  *termui.Pane
+	speed int
 }
 
 func (w *gamePane) Render(pane *termui.Pane) {
@@ -50,9 +50,10 @@ func (w *gamePane) Backend(ctx context.Context) {
 				w.drawInitial(w.pane)
 			default:
 				letters := w.g.Letters()
-				for i := 0; i < len(letters); i++ {
+				for i := range len(letters) {
 					w.pane.Write(letters[i].X, letters[i].Y, w.wrapInRandomColour(letters[i].L))
 				}
+
 				w.drawSnake()
 			}
 		}
@@ -63,7 +64,7 @@ func (w *gamePane) drawInitial(pane *termui.Pane) {
 	if !w.g.SizeSet() {
 		w.g.SetSize(w.pane.CanvasWidth(), w.pane.CanvasHeight())
 	}
-	
+
 	state := w.g.State()
 	switch state {
 	case lettersnake.NotStarted:
@@ -79,9 +80,11 @@ func (w *gamePane) drawInitial(pane *termui.Pane) {
 		pane.Write(1, 12, "Selected game")
 		pane.Write(1, 13, "-------------")
 		pane.Write(1, 14, w.g.Title())
+
 		return
 	case lettersnake.GameOver:
 		pane.Write(2, 0, "** Game over! **")
+
 		return
 	default:
 	}
@@ -89,9 +92,10 @@ func (w *gamePane) drawInitial(pane *termui.Pane) {
 
 func (w *gamePane) drawSnake() {
 	snake := w.g.Snake()
-	for i := 0; i < len(snake); i++ {
+	for i := range len(snake) {
 		w.pane.Write(snake[i].X, snake[i].Y, w.getSnakeSegment(i))
 	}
+
 	remove := w.g.Remove()
 	if remove != nil {
 		w.pane.Write(remove.X, remove.Y, " ")
@@ -101,15 +105,18 @@ func (w *gamePane) drawSnake() {
 func (w *gamePane) getSnakeSegment(i int) string {
 	// 125-159
 	c := 125 + i
+
 	s := "▓"
 	if i > 0 {
 		s = "▒"
 	}
+
 	return fmt.Sprintf("\033[38;5;%dm%s\033[0m", c, s)
 }
 
 func (w *gamePane) wrapInRandomColour(s string) string {
 	colours := []string{"\033[1;93m", "\033[1;92m", "\033[1;95m", "\033[1;96m"}
 	reset := "\033[0m"
+
 	return colours[rand.Intn(len(colours))] + s + reset
 }

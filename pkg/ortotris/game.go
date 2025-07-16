@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-// State
+// State.
 const (
 	NotStarted = iota
 	GameOn
 	GameOver
 )
 
-// Iterate result
+// Iterate result.
 const (
 	_ = iota
 	TopReached
@@ -57,18 +57,24 @@ func NewGame() *Game {
 func (g *Game) ReadWords(f io.Reader) {
 	// TODO: Validation - for now, code assumes that the file contains correct data
 	i := 0
+
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
+
 		i++
+
 		if i == 1 {
 			g.title = line
 		}
+
 		if i == 2 {
 			lineArr := strings.Split(line, ":")
 			g.letters = [2]string{lineArr[0], lineArr[1]}
+
 			continue
 		}
+
 		g.words = append(g.words, line)
 	}
 }
@@ -170,6 +176,7 @@ func (g *Game) Iterate() int {
 
 	if g.lastAvailableLine == 0 || g.nextWordIndex == len(g.words) {
 		g.StopGame()
+
 		g.wordsGiven++
 		if g.lastAvailableLine == 0 {
 			return TopReached
@@ -184,9 +191,11 @@ func (g *Game) Iterate() int {
 		if g.currentWord != g.currentWordCorrect {
 			g.wordsNotGuessed = append(g.wordsNotGuessed, g.currentWord)
 			g.currentWord = ""
+
 			return WrongAnswer
 		} else {
 			g.currentWord = ""
+
 			return CorrectAnswer
 		}
 	}
@@ -198,6 +207,7 @@ func (g *Game) Iterate() int {
 	} else {
 		g.nextWordLine++
 	}
+
 	g.iterateToLast = false
 
 	// If the word is not at the bottom then just continue

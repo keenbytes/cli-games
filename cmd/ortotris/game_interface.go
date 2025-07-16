@@ -43,7 +43,14 @@ func newGameInterface(g *ortotris.Game, speed int) *gameInterface {
 	gui.score = paneScore
 	gui.info = paneInfo
 
-	gui.tui.SetFrame(&termui.Frame{}, paneWords, paneLeftLetter, paneRightLetter, paneScore, paneInfo)
+	gui.tui.SetFrame(
+		&termui.Frame{},
+		paneWords,
+		paneLeftLetter,
+		paneRightLetter,
+		paneScore,
+		paneInfo,
+	)
 
 	return gui
 }
@@ -57,36 +64,41 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 	go func() {
 		gui.tui.Run(ctx, os.Stdout, os.Stderr)
 		wg.Done()
+
 		stopStdio = true
 	}()
 
 	go func() {
-		var b []byte = make([]byte, 1)
-		for {
-			if stopStdio {
-				break
-			}
+		b := make([]byte, 1)
+
+		for !stopStdio {
+
 			os.Stdin.Read(b)
 			// key press code here
 			if string(b) == "x" {
 				cancel()
+
 				break
 			}
+
 			if string(b) == "s" {
 				if gui.g.State() != ortotris.GameOn {
 					gui.g.StartGame()
 				}
+
 				continue
 			}
 			// TODO: Keys should be handled differently, maybe in raw mode
 			// left arrow pressed
 			if string(b) == "D" {
 				gui.g.ChooseLeftLetter()
+
 				continue
 			}
 			// right arrow pressed
 			if string(b) == "C" {
 				gui.g.ChooseRightLetter()
+
 				continue
 			}
 			// down arrow pressed
@@ -94,6 +106,7 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 				gui.g.SetNextLineToLast()
 			}
 		}
+
 		wg.Done()
 	}()
 

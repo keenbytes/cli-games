@@ -14,11 +14,24 @@ import (
 )
 
 func main() {
-	cli := broccli.NewBroccli("lettersnake", "Classic snake but with letters and words!", "Mikolaj Gasior")
+	cli := broccli.NewBroccli(
+		"lettersnake",
+		"Classic snake but with letters and words!",
+		"Mikolaj Gasior",
+	)
 	cmd := cli.Command("start", "Starts the game", startHandler)
-	cmd.Flag("words", "f", "", "Text file with wordlist", broccli.TypePathFile, broccli.IsExistent|broccli.IsRequired)
+	cmd.Flag(
+		"words",
+		"f",
+		"",
+		"Text file with wordlist",
+		broccli.TypePathFile,
+		broccli.IsExistent|broccli.IsRequired,
+	)
 	cmd.Flag("speed", "s", "", "Snake speed", broccli.TypeInt, 0)
+
 	_ = cli.Command("version", "Shows version", versionHandler)
+
 	if len(os.Args) == 2 && (os.Args[1] == "-v" || os.Args[1] == "--version") {
 		os.Args = []string{"App", "version"}
 	}
@@ -28,6 +41,7 @@ func main() {
 
 func versionHandler(ctx context.Context, c *broccli.Broccli) int {
 	fmt.Fprintf(os.Stdout, VERSION+"\n")
+
 	return 0
 }
 
@@ -37,6 +51,7 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 	f, err := os.Open(c.Flag("words"))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading words from file: %s", err.Error())
+
 		return 1
 	}
 	defer f.Close()
@@ -62,9 +77,12 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+
 	go func() {
 		gui.run(ctxGui, cancelGui)
+
 		quit <- struct{}{}
+
 		wg.Done()
 	}()
 	go func() {
@@ -79,6 +97,7 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 			}
 		}
 	}()
+
 	wg.Wait()
 
 	return 0

@@ -7,14 +7,14 @@ import (
 	"strings"
 )
 
-// State
+// State.
 const (
 	NotStarted = iota
 	GameOn
 	GameOver
 )
 
-// Direction
+// Direction.
 const (
 	Down = iota
 	Up
@@ -22,7 +22,7 @@ const (
 	Right
 )
 
-// Iterate result
+// Iterate result.
 const (
 	_ = iota
 	EdgeHit
@@ -43,8 +43,8 @@ type Segment struct {
 }
 
 type Game struct {
-	state int
-	title string
+	state              int
+	title              string
 	words              []string
 	nextWordIndex      int
 	currentWord        string
@@ -57,7 +57,7 @@ type Game struct {
 	snake              []Segment
 	remove             *Segment
 	consumedLetters    string
-	sizeSet bool
+	sizeSet            bool
 }
 
 func NewGame() *Game {
@@ -77,13 +77,17 @@ func NewGame() *Game {
 func (g *Game) ReadWords(f io.Reader) {
 	// TODO: Validation - for now, code assumes that the file contains correct data
 	i := 0
+
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
+
 		i++
+
 		if i == 1 {
 			g.title = line
 		}
+
 		g.words = append(g.words, line)
 	}
 }
@@ -184,44 +188,58 @@ func (g *Game) Iterate() int {
 	case Down:
 		if g.snake[0].X == g.snake[1].X && g.snake[0].Y == g.snake[1].Y {
 			g.StopGame()
+
 			return AteItself
 		}
+
 		if g.snake[0].Y == g.size[1]-1 {
 			g.StopGame()
+
 			return EdgeHit
 		}
 	case Up:
 		if g.snake[0].X == g.snake[1].X && g.snake[1].Y == g.snake[0].Y {
 			g.StopGame()
+
 			return AteItself
 		}
+
 		if g.snake[0].Y == 0 {
 			g.StopGame()
+
 			return EdgeHit
 		}
 	case Left:
 		if g.snake[0].Y == g.snake[1].Y && g.snake[0].X == g.snake[1].X {
 			g.StopGame()
+
 			return AteItself
 		}
+
 		if g.snake[0].X == 0 {
 			g.StopGame()
+
 			return EdgeHit
 		}
 	case Right:
 		if g.snake[0].Y == g.snake[1].Y && g.snake[1].X == g.snake[0].X {
 			g.StopGame()
+
 			return AteItself
 		}
+
 		if g.snake[0].X == g.size[0]-1 {
 			g.StopGame()
+
 			return EdgeHit
 		}
 	}
 
 	consumedLetter := false
 	newLetters := []Letter{}
+
 	var addTail *Segment
+
 	for _, l := range g.letters {
 		if g.snake[0].X == l.X && g.snake[0].Y == l.Y {
 			g.consumedLetters += l.L
@@ -230,6 +248,7 @@ func (g *Game) Iterate() int {
 			newLetters = append(newLetters, l)
 		}
 	}
+
 	g.letters = newLetters
 
 	if !consumedLetter {
@@ -249,6 +268,7 @@ func (g *Game) Iterate() int {
 		g.snake[i].X = g.snake[i-1].X
 		g.snake[i].Y = g.snake[i-1].Y
 	}
+
 	if addTail != nil {
 		g.snake = append(g.snake, *addTail)
 	}
@@ -268,10 +288,13 @@ func (g *Game) Iterate() int {
 		if g.currentWord == g.consumedLetters {
 			g.wordsCorrect++
 		}
+
 		if g.nextWordIndex == len(g.words) {
 			g.StopGame()
+
 			return AllWordsUsed
 		}
+
 		g.useNewWord()
 	}
 
@@ -287,6 +310,7 @@ func (g *Game) useNewWord() {
 	g.currentWord = curWordArr[1]
 	g.currentTranslation = curWordArr[0]
 	g.setLettersFromCurrentWord()
+
 	g.nextWordIndex++
 	g.wordsGiven++
 	g.consumedLetters = ""
@@ -294,7 +318,7 @@ func (g *Game) useNewWord() {
 
 func (g *Game) setLettersFromCurrentWord() {
 	g.letters = make([]Letter, 0)
-	for i := 0; i < len(g.currentWord); i++ {
+	for i := range len(g.currentWord) {
 		g.letters = append(g.letters, Letter{
 			X: rand.IntN(g.size[0]-2) + 1,
 			Y: rand.IntN(g.size[1]-2) + 1,

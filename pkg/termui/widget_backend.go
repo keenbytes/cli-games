@@ -2,7 +2,6 @@ package termui
 
 import (
 	"context"
-	"fmt"
 	"time"
 )
 
@@ -14,7 +13,7 @@ func (w *WidgetBackend) Render(pane *Pane) {
 }
 
 func (w WidgetBackend) Iterate(pane *Pane) {
-	pane.Write(0, 0, fmt.Sprintf("Time: %s", w.cachedValue))
+	pane.Write(0, 0, "Time: "+w.cachedValue)
 }
 
 func (w WidgetBackend) HasBackend() bool {
@@ -23,6 +22,7 @@ func (w WidgetBackend) HasBackend() bool {
 
 func (w *WidgetBackend) Backend(ctx context.Context) {
 	ticker := time.NewTicker(500 * time.Millisecond)
+
 	for {
 		select {
 		case <-ctx.Done():

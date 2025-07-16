@@ -2,6 +2,8 @@
 
 This repository contains small terminal-based games designed for my kids.
 
+![lettersnake](lettersnake-logo.png "lettersnake") ![ortotris](ortotris-logo.png "ortotris")
+
 ## Lettersnake
 
 The concept is that you get a word in one language and you need to collect letters to form its translation in another.
