@@ -7,30 +7,6 @@ import (
 	"strings"
 )
 
-// State.
-const (
-	NotStarted = iota
-	GameOn
-	GameOver
-)
-
-// Direction.
-const (
-	Down = iota
-	Up
-	Left
-	Right
-)
-
-// Iterate result.
-const (
-	_ = iota
-	EdgeHit
-	AteItself
-	AllWordsUsed
-	ContinueGame
-)
-
 type Letter struct {
 	X int
 	Y int

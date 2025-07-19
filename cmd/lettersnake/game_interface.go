@@ -67,7 +67,6 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 		b := make([]byte, 1)
 
 		for !stopStdio {
-
 			os.Stdin.Read(b)
 			// key press code here
 			if string(b) == "x" {

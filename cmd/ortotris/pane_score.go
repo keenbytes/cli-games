@@ -10,22 +10,23 @@ import (
 )
 
 type scorePane struct {
-	g *ortotris.Game
+	game *ortotris.Game
 }
 
-func (w *scorePane) Render(pane *termui.Pane) {
+func (p *scorePane) Render(pane *termui.Pane) {
 }
 
-func (w scorePane) Iterate(pane *termui.Pane) {
+//nolint:mnd
+func (p *scorePane) Iterate(pane *termui.Pane) {
 	pane.Write(0, 0, "Correct:")
-	pane.Write(1, 1, fmt.Sprintf("%d/%d", w.g.NumCorrectAnswers(), w.g.NumUsedWords()))
+	pane.Write(1, 1, fmt.Sprintf("%d/%d", p.game.NumCorrectGuesses(), p.game.NumUsedWords()))
 	pane.Write(0, 3, "Total:")
-	pane.Write(1, 4, strconv.Itoa(w.g.NumAllWords()))
+	pane.Write(1, 4, strconv.Itoa(p.game.NumWordList()))
 }
 
-func (w scorePane) HasBackend() bool {
+func (p *scorePane) HasBackend() bool {
 	return false
 }
 
-func (w *scorePane) Backend(ctx context.Context) {
+func (p *scorePane) Backend(ctx context.Context) {
 }

@@ -14,7 +14,11 @@ linters:
         main:
           allow:
             - $gostd
+            - github.com/keenbytes/cli-games/pkg/ortotris
+            - github.com/keenbytes/cli-games/pkg/lettersnake
             - github.com/keenbytes/broccli/v3
+            - github.com/keenbytes/cli-games/pkg/termui
+            - github.com/keenbytes/cli-games/pkg/term
   exclusions:
     generated: disable
     rules:

@@ -5,19 +5,24 @@ import (
 	"time"
 )
 
+// WidgetTime shows current time.
 type WidgetTime struct{}
 
-func (w *WidgetTime) Render(pane *Pane) {
+// Render draws the widget content onto the given pane.
+func (w *WidgetTime) Render(_ *Pane) {
 }
 
-func (w WidgetTime) Iterate(pane *Pane) {
+// Iterate is called on every termui iteration to update the widget's state or content.
+func (w *WidgetTime) Iterate(pane *Pane) {
 	now := time.Now()
 	pane.Write(0, 0, now.Format("15:04:05"))
 }
 
-func (w WidgetTime) HasBackend() bool {
+// HasBackend indicates whether the widget has a background process for computation or data retrieval.
+func (w *WidgetTime) HasBackend() bool {
 	return false
 }
 
-func (w *WidgetTime) Backend(ctx context.Context) {
+// Backend is a background function that performs processing or data fetching.
+func (w *WidgetTime) Backend(_ context.Context) {
 }

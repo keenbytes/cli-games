@@ -9,6 +9,11 @@ import (
 	"github.com/keenbytes/cli-games/pkg/termui"
 )
 
+const (
+	letterColumnWidth = 10
+	bottomRowHeight   = 4
+)
+
 type gameInterface struct {
 	tui         *termui.TermUI
 	words       *termui.Pane
@@ -16,26 +21,46 @@ type gameInterface struct {
 	rightLetter *termui.Pane
 	score       *termui.Pane
 	info        *termui.Pane
-	g           *ortotris.Game
+	game        *ortotris.Game
 }
 
-func newGameInterface(g *ortotris.Game, speed int) *gameInterface {
+func newGameInterface(game *ortotris.Game, speed int) *gameInterface {
 	gui := &gameInterface{}
 
-	gui.g = g
+	gui.game = game
 	gui.tui = termui.NewTermUI()
 	mainPane := gui.tui.Pane()
 
-	_left, _middleAndRight := mainPane.Split(termui.Vertically, termui.Left, 10, termui.Char)
-	paneWords, _right := _middleAndRight.Split(termui.Vertically, termui.Right, 10, termui.Char)
-	paneInfo, paneLeftLetter := _left.Split(termui.Horizontally, termui.Right, 4, termui.Char)
-	paneScore, paneRightLetter := _right.Split(termui.Horizontally, termui.Right, 4, termui.Char)
+	_left, _middleAndRight := mainPane.Split(
+		termui.Vertically,
+		termui.Left,
+		letterColumnWidth,
+		termui.Char,
+	)
+	paneWords, _right := _middleAndRight.Split(
+		termui.Vertically,
+		termui.Right,
+		letterColumnWidth,
+		termui.Char,
+	)
+	paneInfo, paneLeftLetter := _left.Split(
+		termui.Horizontally,
+		termui.Right,
+		bottomRowHeight,
+		termui.Char,
+	)
+	paneScore, paneRightLetter := _right.Split(
+		termui.Horizontally,
+		termui.Right,
+		bottomRowHeight,
+		termui.Char,
+	)
 
-	paneInfo.Widget = &infoPane{g: g}
-	paneLeftLetter.Widget = &leftLetterPane{g: g}
-	paneRightLetter.Widget = &rightLetterPane{g: g}
-	paneScore.Widget = &scorePane{g: g}
-	paneWords.Widget = &wordsPane{g: g, pane: paneWords, speed: speed}
+	paneInfo.Widget = &infoPane{game: game}
+	paneLeftLetter.Widget = &leftLetterPane{game: game}
+	paneRightLetter.Widget = &rightLetterPane{game: game}
+	paneScore.Widget = &scorePane{game: game}
+	paneWords.Widget = &wordsPane{game: game, pane: paneWords, speed: speed}
 
 	gui.words = paneWords
 	gui.leftLetter = paneLeftLetter
@@ -56,59 +81,65 @@ func newGameInterface(g *ortotris.Game, speed int) *gameInterface {
 }
 
 func (gui *gameInterface) run(ctx context.Context, cancel func()) {
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	waitGroup := sync.WaitGroup{}
+	waitGroup.Add(2)
 
 	stopStdio := false
 
 	go func() {
 		gui.tui.Run(ctx, os.Stdout, os.Stderr)
-		wg.Done()
+		waitGroup.Done()
 
 		stopStdio = true
 	}()
 
 	go func() {
-		b := make([]byte, 1)
+		input := make([]byte, 1)
 
 		for !stopStdio {
-
-			os.Stdin.Read(b)
+			_, _ = os.Stdin.Read(input)
 			// key press code here
-			if string(b) == "x" {
+			if string(input) == "t" {
 				cancel()
 
 				break
 			}
 
-			if string(b) == "s" {
-				if gui.g.State() != ortotris.GameOn {
-					gui.g.StartGame()
+			if string(input) == "g" {
+				if gui.game.State() != ortotris.GameOn {
+					gui.game.StartGame()
 				}
 
 				continue
 			}
-			// TODO: Keys should be handled differently, maybe in raw mode
-			// left arrow pressed
-			if string(b) == "D" {
-				gui.g.ChooseLeftLetter()
+
+			if string(input) == "a" {
+				gui.game.ChooseLeftLetter()
 
 				continue
 			}
 			// right arrow pressed
-			if string(b) == "C" {
-				gui.g.ChooseRightLetter()
+			if string(input) == "d" {
+				gui.game.ChooseRightLetter()
 
 				continue
 			}
 			// down arrow pressed
-			if string(b) == "B" {
-				gui.g.SetNextLineToLast()
+			if string(input) == "s" {
+				gui.game.SetNextLineToLast()
+			}
+
+			// increase speed
+			if string(input) == "i" {
+			}
+
+			// decrease speed
+			if string(input) == "k" {
 			}
 		}
 
-		wg.Done()
+		waitGroup.Done()
 	}()
 
-	wg.Wait()
+	waitGroup.Wait()
 }

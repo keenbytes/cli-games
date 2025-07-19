@@ -1,3 +1,5 @@
+// Package termui is designed to simplify output to a terminal window by allowing the specification of panes with
+// static or dynamic content.
 package termui
 
 import (
@@ -11,6 +13,7 @@ import (
 	"github.com/keenbytes/cli-games/pkg/term"
 )
 
+// TermUI represents the UI in the terminal.
 type TermUI struct {
 	stdout        *os.File
 	stderr        *os.File
@@ -22,17 +25,18 @@ type TermUI struct {
 	mutex         sync.Mutex
 }
 
+// NewTermUI returns new TermUI instance.
 func NewTermUI() *TermUI {
-	t := &TermUI{
+	termUI := &TermUI{
 		pane: &Pane{},
 	}
 
-	t.pane.ui = t
+	termUI.pane.ui = termUI
 
-	return t
+	return termUI
 }
 
-// GetPane returns initial terminal pane.
+// Pane returns initial terminal pane.
 func (t *TermUI) Pane() *Pane {
 	return t.pane
 }
@@ -52,6 +56,7 @@ func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int 
 		ctx, cancel := context.WithCancel(context.Background())
 		backendCancelFuncs = append(backendCancelFuncs, cancel)
 
+		//nolint:contextcheck
 		go pane.Widget.Backend(ctx)
 	}
 
@@ -64,19 +69,21 @@ func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int 
 }
 
 // Write prints out on the terminal window at a specified position.
-func (t *TermUI) Write(x int, y int, s string) {
+//
+//nolint:errcheck
+func (t *TermUI) Write(positionX int, positionY int, str string) {
 	t.mutex.Lock()
 	fmt.Fprintf(t.stdout, "\u001b[1000A\u001b[1000D")
 
-	if x > 0 {
-		fmt.Fprintf(t.stdout, "\u001b[%sC", strconv.Itoa(x))
+	if positionX > 0 {
+		fmt.Fprintf(t.stdout, "\u001b[%sC", strconv.Itoa(positionX))
 	}
 
-	if y > 0 {
-		fmt.Fprintf(t.stdout, "\u001b[%sB", strconv.Itoa(y))
+	if positionY > 0 {
+		fmt.Fprintf(t.stdout, "\u001b[%sB", strconv.Itoa(positionY))
 	}
 
-	fmt.Fprint(t.stdout, s)
+	fmt.Fprint(t.stdout, str)
 	t.mutex.Unlock()
 }
 
@@ -94,6 +101,7 @@ func (t *TermUI) getIterablePanes(pane *Pane) {
 	case Horizontally, Vertically:
 		t.getIterablePanes(pane.panes[0])
 		t.getIterablePanes(pane.panes[1])
+
 	default:
 		t.iterablePanes = append(t.iterablePanes, pane)
 		if pane.Widget != nil && pane.Widget.HasBackend() {
@@ -108,6 +116,7 @@ func (t *TermUI) loop(
 	done chan<- struct{},
 	backendCancelFuncs []context.CancelFunc,
 ) {
+	//nolint:mnd
 	ticker := time.NewTicker(500 * time.Millisecond)
 
 	for {
@@ -142,16 +151,16 @@ func (t *TermUI) exit() {
 
 // refreshSize gets terminal size and caches it.
 func (t *TermUI) refreshSize() bool {
-	w, h, err := term.GetSize()
+	width, height, err := term.GetSize()
 	if err != nil {
 		return false
 	}
 
-	if t.width != w || t.height != h {
-		t.width = w
-		t.height = h
-		t.pane.setWidth(w)
-		t.pane.setHeight(h)
+	if t.width != width || t.height != height {
+		t.width = width
+		t.height = height
+		t.pane.setWidth(width)
+		t.pane.setHeight(height)
 
 		return true
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"syscall"
@@ -14,7 +15,11 @@ import (
 )
 
 func main() {
-	cli := broccli.NewBroccli("ortotris", "Clone of a classic Ortotris game", "Mikolaj Gasior")
+	cli := broccli.NewBroccli(
+		"ortotris",
+		"Clone of a classic Ortotris game",
+		"Mikołaj Gąsior <m@gasior.dev>",
+	)
 
 	cmd := cli.Command("start", "Starts the game", startHandler)
 	cmd.Flag(
@@ -42,29 +47,40 @@ func versionHandler(ctx context.Context, c *broccli.Broccli) int {
 	return 0
 }
 
-func startHandler(ctx context.Context, c *broccli.Broccli) int {
-	g := ortotris.NewGame()
+//nolint:contextcheck
+func startHandler(ctx context.Context, cli *broccli.Broccli) int {
+	game := ortotris.NewGame()
 
-	f, err := os.Open(c.Flag("words"))
+	wordsFile, err := os.Open(filepath.Clean(cli.Flag("words")))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading words from file: %s", err.Error())
 
 		return 1
 	}
-	defer f.Close()
 
-	g.ReadWords(f)
-	g.RandomizeWords()
+	defer func() {
+		err := wordsFile.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error closing words file")
+		}
+	}()
 
-	// TODO: speed
-	speed := c.Flag("speed")
+	game.ReadWords(wordsFile)
+	game.RandomizeWords()
+
+	speed := cli.Flag("speed")
 	if speed == "" {
 		speed = "400"
 	}
 
-	speedInt, _ := strconv.Atoi(speed)
+	speedInt, err := strconv.Atoi(speed)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "invalid speed value")
 
-	gui := newGameInterface(g, speedInt)
+		return 1
+	}
+
+	gui := newGameInterface(game, speedInt)
 
 	ctxGui, cancelGui := context.WithCancel(context.Background())
 
@@ -73,21 +89,21 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 
 	quit := make(chan struct{})
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	workingGroup := sync.WaitGroup{}
+	workingGroup.Add(2)
 
 	go func() {
 		gui.run(ctxGui, cancelGui)
 
 		quit <- struct{}{}
 
-		wg.Done()
+		workingGroup.Done()
 	}()
 	go func() {
 		for {
 			select {
 			case <-quit:
-				wg.Done()
+				workingGroup.Done()
 			case <-sigs:
 				cancelGui()
 			case <-ctx.Done():
@@ -96,7 +112,7 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 		}
 	}()
 
-	wg.Wait()
+	workingGroup.Wait()
 
 	return 0
 }

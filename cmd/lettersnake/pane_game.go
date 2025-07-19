@@ -50,7 +50,7 @@ func (w *gamePane) Backend(ctx context.Context) {
 				w.drawInitial(w.pane)
 			default:
 				letters := w.g.Letters()
-				for i := range len(letters) {
+				for i := range letters {
 					w.pane.Write(letters[i].X, letters[i].Y, w.wrapInRandomColour(letters[i].L))
 				}
 
@@ -92,7 +92,7 @@ func (w *gamePane) drawInitial(pane *termui.Pane) {
 
 func (w *gamePane) drawSnake() {
 	snake := w.g.Snake()
-	for i := range len(snake) {
+	for i := range snake {
 		w.pane.Write(snake[i].X, snake[i].Y, w.getSnakeSegment(i))
 	}
 

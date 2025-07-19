@@ -16,7 +16,8 @@ See screenshot below:
 
 To play the game just run:
 
-    go run *.go start -f words-pl-en-animals.txt
+    cd cmd/lettersnake
+    go run *.go start -f ../../game-files/lettersnake/words-pl-en-animals.txt
 
 ### Instructions
 Use arrows to steer the snake.
@@ -48,7 +49,8 @@ See screenshot below:
 
 To play the game just run:
 
-    go run *.go start -f words-u-o.txt
+    cd cmd/ortotris
+    go run *.go start -f ../../game-files/ortotris/words-u-o.txt
 
 ### Instructions
 Words descend from the top of the screen, similar to Tetris, but with one or two missing letters, indicated by an underscore (_). Use the left and right arrow keys to select one of the available letters before the word reaches the bottom. If an incorrect letter is chosen, the word will remain at the bottom. You can also press the down arrow to drop the word immediately.

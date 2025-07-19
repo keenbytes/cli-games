@@ -7,25 +7,43 @@ import (
 )
 
 const (
+	// NoSplit indicates that the pane is not split.
 	NoSplit = iota
+
+	// Horizontally indicates that the pane is split horizontally.
 	Horizontally
+
+	// Vertically indicates that the pane is split vertically.
 	Vertically
 )
 
 const (
 	_ = iota
-	Left
-	Right
-	Top
-	Bottom
+
+	// LeftPane is used for vertical splits and means the left pane has a fixed size.
+	LeftPane
+
+	// RightPane is used for vertical splits and means the right pane has a fixed size.
+	RightPane
+
+	// TopPane is used for horizontal splits and means the top pane has a fixed size.
+	TopPane
+
+	// BottomPane is used for horizontal splits and means the bottom pane has a fixed size.
+	BottomPane
 )
 
 const (
 	_ = iota
+
+	// Char indicates that the size is specified in characters.
 	Char
+
+	// Percent indicates that the size is specified as a percentage.
 	Percent
 )
 
+// Pane represents a single pane on the screen.
 type Pane struct {
 	left            int
 	top             int
@@ -48,7 +66,8 @@ type Pane struct {
 	Widget          Widget
 }
 
-// Split creates new two panes by splitting this pane either horizontally or vertically.
+// Split divides the current pane into two panes either horizontally or vertically,
+// using the specified split type, target side, size, and unit.
 func (p *Pane) Split(typ int, sizeTarget int, size int, unit int) (*Pane, *Pane) {
 	p.panes[0] = &Pane{
 		ui: p.ui,
@@ -64,52 +83,51 @@ func (p *Pane) Split(typ int, sizeTarget int, size int, unit int) (*Pane, *Pane)
 	return p.panes[0], p.panes[1]
 }
 
-// Write writes a specific utf8 string on the pane canvas (so inside the frames).
+// Write draws a UTF-8 string at the given coordinates inside the pane.
 func (p *Pane) Write(x, y int, content string) {
-	cx, cy := p.canvasLeft+x, p.canvasTop+y
+	positionX, positionY := p.canvasLeft+x, p.canvasTop+y
 
 	length := utf8.RuneCountInString(content)
 	if length > p.canvasWidth {
-		p.ui.Write(cx, cy, string([]rune(content)[:p.canvasWidth]))
+		p.ui.Write(positionX, positionY, string([]rune(content)[:p.canvasWidth]))
 	} else {
-		p.ui.Write(cx, cy, content)
+		p.ui.Write(positionX, positionY, content)
 	}
 }
 
-// WriteNoFrame writes a specific utf8 string in the pane and position coordinates ignore the frame
-// so it can be overwritten.
+// WriteNoFrame writes a UTF-8 string at the specified position, ignoring the pane's frame boundaries.
 func (p *Pane) WriteNoFrame(x, y int, content string) {
 	p.ui.Write(p.left+x, p.top+y, content)
 }
 
-// Clear fill the pane canvas with space characters.
+// Clear resets the pane's canvas by writing space characters.
 func (p *Pane) Clear() {
 	for line := range p.canvasHeight {
 		p.ui.Write(p.canvasLeft, p.canvasTop+line, strings.Repeat(" ", p.canvasWidth))
 	}
 }
 
-// Clear fill the whole pane with space characters (overwrites frame).
+// ClearNoFrame overwrites the whole pane, frame included, with space characters.
 func (p *Pane) ClearNoFrame() {
 	for line := range p.height {
 		p.ui.Write(0, line, strings.Repeat(" ", p.width))
 	}
 }
 
-// CanvasWidth returns canvas width.
+// CanvasWidth returns the width of the pane's canvas.
 func (p *Pane) CanvasWidth() int {
 	return p.canvasWidth
 }
 
-// CanvasHeight returns canvas height.
+// CanvasHeight returns the height of the pane's canvas.
 func (p *Pane) CanvasHeight() int {
 	return p.canvasHeight
 }
 
-// setWidth sets width of pane, checks if it's not too small for the content (search for 'minimal width')
-// and calls panes inside to set their width as well.
-func (p *Pane) setWidth(w int) {
-	p.width = w
+// setWidth sets the pane's width, ensuring it's not smaller than the minimal allowed width.
+// It also recursively updates the width of any nested panes.
+func (p *Pane) setWidth(width int) {
+	p.width = width
 	if p.minWidth > 0 && p.width < p.minWidth {
 		p.tooSmall = true
 
@@ -121,10 +139,11 @@ func (p *Pane) setWidth(w int) {
 	switch p.splitType {
 	case Horizontally:
 		p.panes[0].left, p.panes[1].left = p.left, p.left
-		p.panes[0].setWidth(w)
-		p.panes[1].setWidth(w)
+		p.panes[0].setWidth(width)
+		p.panes[1].setWidth(width)
+
 	case Vertically:
-		v1, v2, tooSmall := p.getSplitValues()
+		value1, value2, tooSmall := p.getSplitValues()
 		if tooSmall {
 			p.tooSmall = true
 
@@ -132,19 +151,20 @@ func (p *Pane) setWidth(w int) {
 		}
 
 		p.tooSmall = false
-		p.panes[0].left, p.panes[1].left = p.left, p.left+v1
-		p.panes[0].setWidth(v1)
-		p.panes[1].setWidth(v2)
+		p.panes[0].left, p.panes[1].left = p.left, p.left+value1
+		p.panes[0].setWidth(value1)
+		p.panes[1].setWidth(value2)
+
 	default:
-		p.canvasLeft = p.left + p.frame.L()
-		p.canvasWidth = p.width - p.frame.L() - p.frame.R()
+		p.canvasLeft = p.left + p.frame.LeftFrameSize()
+		p.canvasWidth = p.width - p.frame.LeftFrameSize() - p.frame.RightFrameSize()
 	}
 }
 
-// setHeight sets height of pane, checks if it's not too small for the content (search for 'minimal height')
-// and calls panes inside to set their height as well.
-func (p *Pane) setHeight(h int) {
-	p.height = h
+// setHeight sets the pane's height, ensuring it is not smaller than the minimal allowed height.
+// It also recursively updates the height of any nested panes.
+func (p *Pane) setHeight(height int) {
+	p.height = height
 	if p.minHeight > 0 && p.height < p.minHeight {
 		p.tooSmall = true
 
@@ -157,10 +177,11 @@ func (p *Pane) setHeight(h int) {
 	case Vertically:
 		p.panes[0].top = p.top
 		p.panes[1].top = p.top
-		p.panes[0].setHeight(h)
-		p.panes[1].setHeight(h)
+		p.panes[0].setHeight(height)
+		p.panes[1].setHeight(height)
+
 	case Horizontally:
-		v1, v2, tooSmall := p.getSplitValues()
+		value1, value2, tooSmall := p.getSplitValues()
 		if tooSmall {
 			p.tooSmall = true
 
@@ -169,20 +190,20 @@ func (p *Pane) setHeight(h int) {
 
 		p.tooSmall = false
 		p.panes[0].top = p.top
-		p.panes[1].top = p.top + v1
-		p.panes[0].setHeight(v1)
-		p.panes[1].setHeight(v2)
+		p.panes[1].top = p.top + value1
+		p.panes[0].setHeight(value1)
+		p.panes[1].setHeight(value2)
+
 	default:
-		p.canvasTop = p.top + p.frame.T()
-		p.canvasHeight = p.height - p.frame.T() - p.frame.B()
+		p.canvasTop = p.top + p.frame.TopFrameSize()
+		p.canvasHeight = p.height - p.frame.TopFrameSize() - p.frame.BottomFrameSize()
 	}
 }
 
-// getSplitValues is used by Split functions to calculate the width
-// and height of panes. It takes the split type, split value (and its unit)
-// and calculates the size in number of characters. It also checks if the size
-// is not too small as well.
-func (p *Pane) getSplitValues() (size1 int, size2 int, tooSmall bool) {
+// getSplitValues is used by Split functions to calculate the width and height of resulting panes.
+// It takes the split type, split value, and its unit, and returns the sizes in characters.
+// It also checks whether the calculated sizes are too small.
+func (p *Pane) getSplitValues() (int, int, bool) {
 	var (
 		baseVal int
 		calcVal int
@@ -191,47 +212,53 @@ func (p *Pane) getSplitValues() (size1 int, size2 int, tooSmall bool) {
 	switch p.splitType {
 	case Vertically:
 		baseVal = p.width
+
 	case Horizontally:
 		baseVal = p.height
+
 	default:
-		return size1, size2, tooSmall
+		return 0, 0, false
 	}
 
 	switch p.splitUnit {
 	case Percent:
 		calcVal = int(math.Abs(float64(p.splitSize) / 100 * float64(baseVal)))
+
 	case Char:
 		calcVal = int(math.Abs(float64(p.splitSize)))
+
 	default:
-		return size1, size2, tooSmall
+		return 0, 0, false
 	}
 
 	if calcVal >= baseVal || calcVal < 1 {
-		tooSmall = true
-
-		return size1, size2, tooSmall
+		return 0, 0, true
 	}
 
 	switch p.splitSizeTarget {
-	case Left, Top:
-		size1 = calcVal
-		size2 = baseVal - calcVal
-	case Right, Bottom:
-		size1 = baseVal - calcVal
-		size2 = calcVal
-	default:
-		return size1, size2, tooSmall
-	}
+	case LeftPane, TopPane:
+		size1 := calcVal
+		size2 := baseVal - calcVal
 
-	return size1, size2, tooSmall
+		return size1, size2, false
+
+	case RightPane, BottomPane:
+		size1 := baseVal - calcVal
+		size2 := calcVal
+
+		return size1, size2, false
+
+	default:
+		return 0, 0, false
+	}
 }
 
 func (p *Pane) render() {
 	if p.tooSmall {
 		if p.frame != nil {
-			width := p.width - p.frame.L() - p.frame.R()
+			width := p.width - p.frame.LeftFrameSize() - p.frame.RightFrameSize()
 
-			height := p.height - p.frame.T() - p.frame.B()
+			height := p.height - p.frame.TopFrameSize() - p.frame.BottomFrameSize()
 			if width > 0 && height > 0 {
 				p.renderFrame()
 				p.Write(0, 0, "!")
@@ -262,39 +289,48 @@ func (p *Pane) render() {
 }
 
 func (p *Pane) renderFrame() {
-	c := p.frame.C()
+	cornerChars := p.frame.CornerChars()
 
-	// TODO: logic here actually works for 1 character frame only
-	if p.frame.T() > 1 || p.frame.L() > 1 || p.frame.R() > 1 || p.frame.B() > 1 {
+	// logic here actually works for 1 character frame only
+	if p.frame.TopFrameSize() > 1 || p.frame.LeftFrameSize() > 1 || p.frame.RightFrameSize() > 1 ||
+		p.frame.BottomFrameSize() > 1 {
 		panic(
-			"frame can have a width of 1 character only, L(), R(), T(), B() must all return 0 or 1",
+			"frame can have a width of 1 character only, functions must all return 0 or 1",
 		)
 	}
 
 	// corners
-	p.WriteNoFrame(0, 0, c[NW])
-	p.WriteNoFrame(0, p.height-1, c[SW])
-	p.WriteNoFrame(p.width-1, 0, c[NE])
-	p.WriteNoFrame(p.width-1, p.height-1, c[SE])
+	p.WriteNoFrame(0, 0, cornerChars[TopLeftChar])
+	p.WriteNoFrame(0, p.height-1, cornerChars[BottomLeftChar])
+	p.WriteNoFrame(p.width-1, 0, cornerChars[TopRightChar])
+	p.WriteNoFrame(p.width-1, p.height-1, cornerChars[BottomRightChar])
 
 	// top, bottom, left, right
-	if p.frame.T() > 0 {
-		p.WriteNoFrame(p.frame.L(), 0, strings.Repeat(c[N], p.canvasWidth))
+	if p.frame.TopFrameSize() > 0 {
+		p.WriteNoFrame(
+			p.frame.LeftFrameSize(),
+			0,
+			strings.Repeat(cornerChars[TopChar], p.canvasWidth),
+		)
 	}
 
-	if p.frame.B() > 0 {
-		p.WriteNoFrame(p.frame.L(), p.height-1, strings.Repeat(c[N], p.canvasWidth))
+	if p.frame.BottomFrameSize() > 0 {
+		p.WriteNoFrame(
+			p.frame.LeftFrameSize(),
+			p.height-1,
+			strings.Repeat(cornerChars[TopChar], p.canvasWidth),
+		)
 	}
 
-	if p.frame.L() > 0 {
+	if p.frame.LeftFrameSize() > 0 {
 		for x := range p.canvasHeight {
-			p.WriteNoFrame(0, p.frame.T()+x, c[W])
+			p.WriteNoFrame(0, p.frame.TopFrameSize()+x, cornerChars[LeftChar])
 		}
 	}
 
-	if p.frame.R() > 0 {
+	if p.frame.RightFrameSize() > 0 {
 		for x := range p.canvasHeight {
-			p.WriteNoFrame(p.width-1, p.frame.T()+x, c[E])
+			p.WriteNoFrame(p.width-1, p.frame.TopFrameSize()+x, cornerChars[RightChar])
 		}
 	}
 }
