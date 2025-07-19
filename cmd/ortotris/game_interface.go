@@ -33,25 +33,25 @@ func newGameInterface(game *ortotris.Game, speed int) *gameInterface {
 
 	_left, _middleAndRight := mainPane.Split(
 		termui.Vertically,
-		termui.Left,
+		termui.LeftPane,
 		letterColumnWidth,
 		termui.Char,
 	)
 	paneWords, _right := _middleAndRight.Split(
 		termui.Vertically,
-		termui.Right,
+		termui.RightPane,
 		letterColumnWidth,
 		termui.Char,
 	)
 	paneInfo, paneLeftLetter := _left.Split(
 		termui.Horizontally,
-		termui.Right,
+		termui.RightPane,
 		bottomRowHeight,
 		termui.Char,
 	)
 	paneScore, paneRightLetter := _right.Split(
 		termui.Horizontally,
-		termui.Right,
+		termui.RightPane,
 		bottomRowHeight,
 		termui.Char,
 	)
