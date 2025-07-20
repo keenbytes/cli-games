@@ -1,5 +1,7 @@
 # CLI Games monorepo
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/keenbytes/cli-games)](https://goreportcard.com/report/github.com/keenbytes/cli-games)
+
 This repository contains small terminal-based games designed for my kids.
 
 [![lettersnake](lettersnake-logo.png "lettersnake")](#lettersnake) [![ortotris](ortotris-logo.png "ortotris")](#ortotris)
