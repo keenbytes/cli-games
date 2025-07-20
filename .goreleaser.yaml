@@ -19,6 +19,7 @@ builds:
       - arm64
     main: ./cmd/lettersnake
     binary: lettersnake
+    id: lettersnake
   - env:
       - CGO_ENABLED=0
     goos:
@@ -30,6 +31,7 @@ builds:
       - arm64
     main: ./cmd/ortotris
     binary: ortotris
+    id: ortotris
 
 checksum:
   name_template: 'checksums.txt'
@@ -41,6 +43,11 @@ archives:
   - formats: [ 'zip' ]
     files:
       - LICENSE
+    id: ortotris
+  - formats: [ 'zip' ]
+    files:
+      - LICENSE
+    id: lettersnake
 
 changelog:
   sort: asc
