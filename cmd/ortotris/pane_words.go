@@ -9,97 +9,97 @@ import (
 )
 
 type wordsPane struct {
-	g              *ortotris.Game
-	previousStatus int
-	pane           *termui.Pane
-	speed          int
+	game  *ortotris.Game
+	pane  *termui.Pane
+	speed int
 }
 
-func (w *wordsPane) Render(pane *termui.Pane) {
-	// Update canvas height so that we now how many lines are available
-	w.g.SetAvailableLines(pane.CanvasHeight())
-	w.drawInitial(pane)
+func (p *wordsPane) Render(pane *termui.Pane) {
+	// update canvas height so that we now how many lines are available
+	p.game.SetAvailableLines(pane.CanvasHeight())
+	p.drawInitial(pane)
 }
 
-func (w wordsPane) Iterate(pane *termui.Pane) {
-	w.drawInitial(pane)
+func (p *wordsPane) Iterate(pane *termui.Pane) {
+	p.drawInitial(pane)
 }
 
-func (w wordsPane) HasBackend() bool {
+func (p *wordsPane) HasBackend() bool {
 	return true
 }
 
-func (w *wordsPane) Backend(ctx context.Context) {
-	ticker := time.NewTicker(time.Duration(w.speed) * time.Millisecond)
+func (p *wordsPane) Backend(ctx context.Context) {
+	ticker := time.NewTicker(time.Duration(p.speed) * time.Millisecond)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			if w.g.State() != ortotris.GameOn {
+			if p.game.State() != ortotris.GameOn {
 				continue
 			}
 
-			if w.g.NumUsedWords() == 0 {
-				clearPane(w.pane)
+			if p.game.NumUsedWords() == 0 {
+				clearPane(p.pane)
 			}
 
-			event := w.g.Iterate()
+			event := p.game.Iterate()
 			switch event {
 			case ortotris.TopReached, ortotris.AllWordsUsed:
-				w.drawInitial(w.pane)
+				p.drawInitial(p.pane)
+
 			case ortotris.CorrectAnswer:
-				line := w.g.PrevCurrentLine()
+				line := p.game.CurrentLine()
 				if line > 0 {
-					clearPaneLine(w.pane, line)
+					clearPaneLine(p.pane, line)
 				}
-				line = w.g.CurrentLine()
-				if line > 0 {
-					clearPaneLine(w.pane, line)
+
+			case ortotris.ContinueGame, ortotris.JumpToLastLine:
+				line := p.game.CurrentLine()
+				if line > 1 {
+					clearPaneLine(p.pane, p.game.PreviousLine())
 				}
-				clearPaneLine(w.pane, line+1)
-			case ortotris.WrongAnswer, ortotris.ContinueGame:
-				line := w.g.PrevCurrentLine()
-				if line > 0 {
-					clearPaneLine(w.pane, line)
-				}
-				line = w.g.CurrentLine()
-				if line > 0 {
-					clearPaneLine(w.pane, line)
-				}
-				w.writeWord(w.pane, w.g.CurrentWord(), line+1)
-			default:
+
+				p.writeWord(p.pane, p.game.CurrentGuess(), line)
+
+			case ortotris.WrongAnswer:
+				line := p.game.CurrentLine()
+				p.writeWord(p.pane, p.game.CurrentGuess(), line)
 			}
 		}
 	}
 }
 
-func (w *wordsPane) drawInitial(pane *termui.Pane) {
-	state := w.g.State()
+//nolint:mnd
+func (p *wordsPane) drawInitial(pane *termui.Pane) {
+	state := p.game.State()
 	switch state {
 	case ortotris.NotStarted:
 		pane.Write(1, 0, "Instructions")
 		pane.Write(1, 1, "------------")
 		pane.Write(1, 2, "Do you know Tetris? Here only")
 		pane.Write(1, 3, "properly written words disappear.")
-		pane.Write(1, 4, "Use Arrows to choose the missing")
+		pane.Write(1, 4, "Use A and D to choose the missing")
 		pane.Write(1, 5, "letter.")
 		pane.Write(1, 6, "Can you get all the words")
 		pane.Write(1, 7, "correctly?")
-		pane.Write(1, 9, "Press S to start the game.")
-		pane.Write(1, 10, "Press X at any time to quit.")
+		pane.Write(1, 9, "Press G to start the game.")
+		pane.Write(1, 10, "Press T at any time to quit.")
 		pane.Write(1, 12, "Selected game")
 		pane.Write(1, 13, "-------------")
-		pane.Write(1, 14, w.g.Title())
+		pane.Write(1, 14, p.game.WordListTitle())
+
 		return
 	case ortotris.GameOver:
 		pane.Write(2, 0, "** Game over! **")
+
 		return
 	default:
 	}
 }
 
-func (w *wordsPane) writeWord(pane *termui.Pane, word string, l int) {
-	pane.Write((pane.CanvasWidth()-len(word))/2, l, word)
+//nolint:mnd
+func (p *wordsPane) writeWord(pane *termui.Pane, word string, line int) {
+	pane.Write((pane.CanvasWidth()-len(word))/2, line, word)
 }

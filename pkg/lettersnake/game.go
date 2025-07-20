@@ -1,304 +1,228 @@
 package lettersnake
 
 import (
-	"bufio"
-	"io"
 	"math/rand/v2"
 	"strings"
 )
 
-// State
-const (
-	NotStarted = iota
-	GameOn
-	GameOver
-)
-
-// Direction
-const (
-	Down = iota
-	Up
-	Left
-	Right
-)
-
-// Iterate result
-const (
-	_ = iota
-	EdgeHit
-	AteItself
-	AllWordsUsed
-	ContinueGame
-)
-
-type Letter struct {
-	X int
-	Y int
-	L string
-}
-
-type Segment struct {
-	X int
-	Y int
-}
-
+// Game holds the state and data of the game.
 type Game struct {
+	// state is an actual state of the game
 	state int
-	title string
-	words              []string
-	nextWordIndex      int
-	currentWord        string
+
+	// direction indicates which direction snake is moving
+	direction int
+
+	// wordListTitle is title of the word list
+	wordListTitle string
+
+	// wordList represents words that have to be guessed
+	wordList []string
+
+	// currentWordListIndex indicates which word from the list is currently being guessed (falling)
+	currentWordListIndex int
+
+	// currentWord contains current word from the input
+	currentWord string
+
+	// currentTranslation contains translation for the current word
 	currentTranslation string
-	wordsGiven         int
-	wordsCorrect       int
-	letters            []Letter
-	size               [2]int
-	direction          int
-	snake              []Segment
-	remove             *Segment
-	consumedLetters    string
-	sizeSet bool
+
+	// letters contains positions of letters on the screen
+	letters *map[int]map[int]rune
+
+	// numLettersLeft contains number of letters left on the play area
+	lettersLeft int
+
+	// consumedLetters contain letters that have been eaten by the snake
+	consumedLetters string
+
+	// correctGuesses contains words that have been guessed
+	correctGuesses []string
+
+	// numUsedWords represents number of words that have been taken from the list so far
+	numUsedWords int
+
+	// playAreaSize represents size of playable area within snake can move.
+	playAreaSize [2]int
+
+	// playAreaSizeSet indicates that the playAreaSize has been set.
+	playAreaSizeSet bool
+
+	// snake contains Segments that connected are the snake.
+	snake []Segment
+
+	// tail references the last Segment of the snake.
+	tail *Segment
 }
 
-func NewGame() *Game {
-	return &Game{
-		words:     []string{},
-		direction: Down,
-		snake: []Segment{
-			{X: 3, Y: 5},
-			{X: 3, Y: 4},
-			{X: 3, Y: 3},
-			{X: 3, Y: 2},
-			{X: 3, Y: 1},
-		},
-	}
-}
-
-func (g *Game) ReadWords(f io.Reader) {
-	// TODO: Validation - for now, code assumes that the file contains correct data
-	i := 0
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		i++
-		if i == 1 {
-			g.title = line
-		}
-		g.words = append(g.words, line)
-	}
-}
-
-func (g *Game) RandomizeWords() {
-	rand.Shuffle(len(g.words), func(i, j int) {
-		g.words[i], g.words[j] = g.words[j], g.words[i]
-	})
-}
-
-func (g *Game) Title() string {
-	return g.title
-}
-
-func (g *Game) State() int {
-	return g.state
-}
-
-func (g *Game) CurrentWord() string {
-	return g.currentWord
-}
-
-func (g *Game) CurrentTranslation() string {
-	return g.currentTranslation
-}
-
-func (g *Game) ConsumedLetters() string {
-	return g.consumedLetters
-}
-
-func (g *Game) Letters() []Letter {
-	return g.letters
-}
-
-func (g *Game) Remove() *Segment {
-	return g.remove
-}
-
-func (g *Game) Snake() []Segment {
-	return g.snake
-}
-
-func (g *Game) NumUsedWords() int {
-	return g.wordsGiven
-}
-
-func (g *Game) NumCorrectWords() int {
-	return g.wordsCorrect
-}
-
-func (g *Game) NumAllWords() int {
-	return len(g.words)
-}
-
-func (g *Game) StopGame() {
-	g.state = GameOver
-}
-
-func (g *Game) StartGame() {
-	g.state = GameOn
-
-	g.nextWordIndex = 0
-	g.currentWord = ""
-	g.currentTranslation = ""
-	g.wordsGiven = 0
-}
-
-func (g *Game) Direction() int {
-	return g.direction
-}
-
-func (g *Game) SetDirection(direction int) {
-	g.direction = direction
-}
-
-func (g *Game) SetSize(w int, h int) {
-	g.size[0] = w
-	g.size[1] = h
-	g.sizeSet = true
-}
-
-func (g *Game) SizeSet() bool {
-	return g.sizeSet
-}
-
+// Iterate runs one iteration of the game.
+//
+//nolint:funlen
 func (g *Game) Iterate() int {
 	if g.state != GameOn {
 		return NotStarted
 	}
 
-	// If there is no word then take the next one
-	if g.isCurrentWordEmpty() {
-		g.useNewWord()
+	// take new word from the list
+	if g.shouldTakeNewWord() {
+		more := g.useNewWordFromTheList()
+		if !more {
+			g.StopGame()
+
+			return AllWordsUsed
+		}
 	}
 
-	// Check hitting edges and eating itself (going backwards)
+	// checking if snake is not biting themselves by moving backwards to the same position
+	if g.snake[0].PositionX == g.snake[1].PositionX &&
+		g.snake[0].PositionY == g.snake[1].PositionY {
+		g.StopGame()
+
+		return AteItself
+	}
+
+	// checking if snake is not hitting the edge
 	switch g.direction {
-	case Down:
-		if g.snake[0].X == g.snake[1].X && g.snake[0].Y == g.snake[1].Y {
+	case MovingDown:
+		if g.snake[0].PositionY == g.playAreaSize[1]-1 {
 			g.StopGame()
-			return AteItself
-		}
-		if g.snake[0].Y == g.size[1]-1 {
-			g.StopGame()
+
 			return EdgeHit
 		}
-	case Up:
-		if g.snake[0].X == g.snake[1].X && g.snake[1].Y == g.snake[0].Y {
+	case MovingUp:
+		if g.snake[0].PositionY == 0 {
 			g.StopGame()
-			return AteItself
-		}
-		if g.snake[0].Y == 0 {
-			g.StopGame()
+
 			return EdgeHit
 		}
-	case Left:
-		if g.snake[0].Y == g.snake[1].Y && g.snake[0].X == g.snake[1].X {
+	case MovingLeft:
+		if g.snake[0].PositionX == 0 {
 			g.StopGame()
-			return AteItself
-		}
-		if g.snake[0].X == 0 {
-			g.StopGame()
+
 			return EdgeHit
 		}
-	case Right:
-		if g.snake[0].Y == g.snake[1].Y && g.snake[1].X == g.snake[0].X {
+	case MovingRight:
+		if g.snake[0].PositionX == g.playAreaSize[0]-1 {
 			g.StopGame()
-			return AteItself
-		}
-		if g.snake[0].X == g.size[0]-1 {
-			g.StopGame()
+
 			return EdgeHit
 		}
 	}
 
-	consumedLetter := false
-	newLetters := []Letter{}
-	var addTail *Segment
-	for _, l := range g.letters {
-		if g.snake[0].X == l.X && g.snake[0].Y == l.Y {
-			g.consumedLetters += l.L
-			consumedLetter = true
-		} else {
-			newLetters = append(newLetters, l)
+	letterHasBeenConsumed := false
+
+	letters := *g.letters
+
+	_, posXExists := letters[g.snake[0].PositionX]
+	if posXExists {
+		foundLetter, posYExists := letters[g.snake[0].PositionX][g.snake[0].PositionY]
+		if posYExists {
+			letterHasBeenConsumed = true
+
+			delete(letters[g.snake[0].PositionX], g.snake[0].PositionY)
+
+			g.lettersLeft--
+			g.consumedLetters += string(foundLetter)
 		}
 	}
-	g.letters = newLetters
 
-	if !consumedLetter {
-		g.remove = &Segment{
-			X: g.snake[len(g.snake)-1].X,
-			Y: g.snake[len(g.snake)-1].Y,
+	var tailToAdd *Segment
+
+	if !letterHasBeenConsumed {
+		// tail needs to be removed
+		g.tail = &Segment{
+			PositionX: g.snake[len(g.snake)-1].PositionX,
+			PositionY: g.snake[len(g.snake)-1].PositionY,
 		}
 	} else {
-		g.remove = nil
-		addTail = &Segment{
-			X: g.snake[len(g.snake)-1].X,
-			Y: g.snake[len(g.snake)-1].Y,
+		// nothing should be removed, snake gets longer
+		g.tail = nil
+
+		tailToAdd = &Segment{
+			PositionX: g.snake[len(g.snake)-1].PositionX,
+			PositionY: g.snake[len(g.snake)-1].PositionY,
 		}
 	}
 
 	for i := len(g.snake) - 1; i > 0; i-- {
-		g.snake[i].X = g.snake[i-1].X
-		g.snake[i].Y = g.snake[i-1].Y
+		g.snake[i].PositionX = g.snake[i-1].PositionX
+		g.snake[i].PositionY = g.snake[i-1].PositionY
 	}
-	if addTail != nil {
-		g.snake = append(g.snake, *addTail)
+
+	if tailToAdd != nil {
+		g.snake = append(g.snake, *tailToAdd)
 	}
 
 	switch g.direction {
-	case Down:
-		g.snake[0].Y++
-	case Up:
-		g.snake[0].Y--
-	case Left:
-		g.snake[0].X--
-	case Right:
-		g.snake[0].X++
+	case MovingDown:
+		g.snake[0].PositionY++
+	case MovingUp:
+		g.snake[0].PositionY--
+	case MovingLeft:
+		g.snake[0].PositionX--
+	case MovingRight:
+		g.snake[0].PositionX++
 	}
 
-	if len(g.letters) == 0 {
-		if g.currentWord == g.consumedLetters {
-			g.wordsCorrect++
-		}
-		if g.nextWordIndex == len(g.words) {
-			g.StopGame()
-			return AllWordsUsed
-		}
-		g.useNewWord()
+	if g.lettersLeft > 0 {
+		return ContinueGame
+	}
+
+	if g.currentWord == g.consumedLetters {
+		g.correctGuesses = append(g.correctGuesses, g.currentWord)
 	}
 
 	return ContinueGame
 }
 
-func (g *Game) isCurrentWordEmpty() bool {
-	return g.currentWord == ""
+func (g *Game) shouldTakeNewWord() bool {
+	return g.lettersLeft == 0
 }
 
-func (g *Game) useNewWord() {
-	curWordArr := strings.Split(g.words[g.nextWordIndex], ":")
-	g.currentWord = curWordArr[1]
-	g.currentTranslation = curWordArr[0]
-	g.setLettersFromCurrentWord()
-	g.nextWordIndex++
-	g.wordsGiven++
-	g.consumedLetters = ""
-}
-
-func (g *Game) setLettersFromCurrentWord() {
-	g.letters = make([]Letter, 0)
-	for i := 0; i < len(g.currentWord); i++ {
-		g.letters = append(g.letters, Letter{
-			X: rand.IntN(g.size[0]-2) + 1,
-			Y: rand.IntN(g.size[1]-2) + 1,
-			L: string(g.currentWord[i]),
-		})
+func (g *Game) useNewWordFromTheList() bool {
+	if g.currentWordListIndex == len(g.wordList) {
+		return false
 	}
+
+	nextWord := g.wordList[g.currentWordListIndex]
+
+	nextWordTrimmed := strings.TrimSpace(nextWord)
+	if nextWordTrimmed == "" {
+		return false
+	}
+
+	nextWordArray := strings.Split(nextWordTrimmed, ":")
+	if len(nextWordArray) != 2 || nextWordArray[0] == "" || nextWordArray[1] == "" {
+		return false
+	}
+
+	g.currentWord = nextWordArray[0]
+	g.currentTranslation = nextWordArray[1]
+
+	g.placeLettersFromCurrentWordRandomlyOnThePlayArea()
+
+	g.currentWordListIndex++
+	g.consumedLetters = ""
+
+	return true
+}
+
+//nolint:gosec,mnd
+func (g *Game) placeLettersFromCurrentWordRandomlyOnThePlayArea() {
+	lettersMap := map[int]map[int]rune{}
+
+	for _, wordLetter := range g.currentWord {
+		positionX := rand.IntN(g.playAreaSize[0]-2) + 1
+		positionY := rand.IntN(g.playAreaSize[1]-2) + 1
+
+		if lettersMap[positionX] == nil {
+			lettersMap[positionX] = map[int]rune{}
+		}
+
+		lettersMap[positionX][positionY] = wordLetter
+	}
+
+	g.letters = &lettersMap
+	g.lettersLeft = len(g.currentWord)
 }

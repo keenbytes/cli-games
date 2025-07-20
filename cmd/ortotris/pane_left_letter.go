@@ -8,20 +8,20 @@ import (
 )
 
 type leftLetterPane struct {
-	g *ortotris.Game
+	game *ortotris.Game
 }
 
-func (w *leftLetterPane) Render(pane *termui.Pane) {
+func (p *leftLetterPane) Render(pane *termui.Pane) {
 	pane.Write(0, 0, "   <-   ")
-	pane.Write(0, 1, "    "+w.g.LeftLetter()+"   ")
+	pane.Write(0, 1, "    "+p.game.LeftLetter()+"   ")
 }
 
-func (w leftLetterPane) Iterate(pane *termui.Pane) {
+func (p *leftLetterPane) Iterate(_ *termui.Pane) {
 }
 
-func (w leftLetterPane) HasBackend() bool {
+func (p *leftLetterPane) HasBackend() bool {
 	return false
 }
 
-func (w *leftLetterPane) Backend(ctx context.Context) {
+func (p *leftLetterPane) Backend(_ context.Context) {
 }

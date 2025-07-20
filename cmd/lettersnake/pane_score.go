@@ -9,19 +9,23 @@ import (
 )
 
 type scorePane struct {
-	g *lettersnake.Game
+	game *lettersnake.Game
 }
 
-func (w *scorePane) Render(pane *termui.Pane) {
+func (w *scorePane) Render(_ *termui.Pane) {
 }
 
-func (w scorePane) Iterate(pane *termui.Pane) {
-	pane.Write(1, 0, fmt.Sprintf("Correct: %d/%d", w.g.NumCorrectWords(), w.g.NumUsedWords()))
+func (w *scorePane) Iterate(pane *termui.Pane) {
+	pane.Write(
+		1,
+		0,
+		fmt.Sprintf("Correct: %d/%d", w.game.NumCorrectGuesses(), w.game.NumUsedWords()),
+	)
 }
 
-func (w scorePane) HasBackend() bool {
+func (w *scorePane) HasBackend() bool {
 	return false
 }
 
-func (w *scorePane) Backend(ctx context.Context) {
+func (w *scorePane) Backend(_ context.Context) {
 }

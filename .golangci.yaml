@@ -1,0 +1,39 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop
+    - tagliatelle
+    - testpackage
+    - exhaustruct
+  settings:
+    funlen:
+      lines: 70
+    depguard:
+      rules:
+        main:
+          allow:
+            - $gostd
+            - github.com/keenbytes/cli-games/pkg/ortotris
+            - github.com/keenbytes/cli-games/pkg/lettersnake
+            - github.com/keenbytes/broccli/v3
+            - github.com/keenbytes/cli-games/pkg/termui
+            - github.com/keenbytes/cli-games/pkg/term
+  exclusions:
+    generated: disable
+    rules:
+      - linters:
+          - err113
+          - exhaustruct
+          - funlen
+          - varnamelen
+          - dupl
+        path: _test.go
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+

@@ -1,3 +1,5 @@
+// Package termui is designed to simplify output to a terminal window by allowing the specification of panes with
+// static or dynamic content.
 package termui
 
 import (
@@ -11,6 +13,7 @@ import (
 	"github.com/keenbytes/cli-games/pkg/term"
 )
 
+// TermUI represents the UI in the terminal.
 type TermUI struct {
 	stdout        *os.File
 	stderr        *os.File
@@ -19,27 +22,30 @@ type TermUI struct {
 	pane          *Pane
 	iterablePanes []*Pane
 	backendPanes  []*Pane
-	mutex sync.Mutex
+	mutex         sync.Mutex
 }
 
+// NewTermUI returns new TermUI instance.
 func NewTermUI() *TermUI {
-	t := &TermUI{
+	termUI := &TermUI{
 		pane: &Pane{},
 	}
 
-	t.pane.ui = t
-	return t
+	termUI.pane.ui = termUI
+
+	return termUI
 }
 
-// GetPane returns initial terminal pane
+// Pane returns initial terminal pane.
 func (t *TermUI) Pane() *Pane {
 	return t.pane
 }
 
-// Run clears the terminal and starts program's main loop
+// Run clears the terminal and starts program's main loop.
 func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int {
 	t.stdout = stdout
 	t.stderr = stderr
+
 	term.InitTTY()
 	term.Clear(t.stdout)
 
@@ -49,36 +55,45 @@ func (t *TermUI) Run(ctx context.Context, stdout *os.File, stderr *os.File) int 
 	for _, pane := range t.backendPanes {
 		ctx, cancel := context.WithCancel(context.Background())
 		backendCancelFuncs = append(backendCancelFuncs, cancel)
+
+		//nolint:contextcheck
 		go pane.Widget.Backend(ctx)
 	}
 
 	done := make(chan struct{}, 1)
 	go t.loop(ctx, done, backendCancelFuncs)
+
 	<-done
 
 	return 0
 }
 
-// Write prints out on the terminal window at a specified position
-func (t *TermUI) Write(x int, y int, s string) {
+// Write prints out on the terminal window at a specified position.
+//
+//nolint:errcheck
+func (t *TermUI) Write(positionX int, positionY int, str string) {
 	t.mutex.Lock()
 	fmt.Fprintf(t.stdout, "\u001b[1000A\u001b[1000D")
-	if x > 0 {
-		fmt.Fprintf(t.stdout, "\u001b[%sC", strconv.Itoa(x))
+
+	if positionX > 0 {
+		fmt.Fprintf(t.stdout, "\u001b[%sC", strconv.Itoa(positionX))
 	}
-	if y > 0 {
-		fmt.Fprintf(t.stdout, "\u001b[%sB", strconv.Itoa(y))
+
+	if positionY > 0 {
+		fmt.Fprintf(t.stdout, "\u001b[%sB", strconv.Itoa(positionY))
 	}
-	fmt.Fprint(t.stdout, s)
+
+	fmt.Fprint(t.stdout, str)
 	t.mutex.Unlock()
 }
 
-// RefreshIterablePanes loops through all the panes and gets the ones that are not a split
+// RefreshIterablePanes loops through all the panes and gets the ones that are not a split.
 func (t *TermUI) getIterablePanes(pane *Pane) {
 	if pane == nil {
 		t.iterablePanes = make([]*Pane, 0)
 		t.backendPanes = make([]*Pane, 0)
 		t.getIterablePanes(t.pane)
+
 		return
 	}
 
@@ -86,6 +101,7 @@ func (t *TermUI) getIterablePanes(pane *Pane) {
 	case Horizontally, Vertically:
 		t.getIterablePanes(pane.panes[0])
 		t.getIterablePanes(pane.panes[1])
+
 	default:
 		t.iterablePanes = append(t.iterablePanes, pane)
 		if pane.Widget != nil && pane.Widget.HasBackend() {
@@ -94,8 +110,13 @@ func (t *TermUI) getIterablePanes(pane *Pane) {
 	}
 }
 
-// loop is the main program loop
-func (t *TermUI) loop(ctx context.Context, done chan<- struct{}, backendCancelFuncs []context.CancelFunc) {
+// loop is the main program loop.
+func (t *TermUI) loop(
+	ctx context.Context,
+	done chan<- struct{},
+	backendCancelFuncs []context.CancelFunc,
+) {
+	//nolint:mnd
 	ticker := time.NewTicker(500 * time.Millisecond)
 
 	for {
@@ -104,7 +125,9 @@ func (t *TermUI) loop(ctx context.Context, done chan<- struct{}, backendCancelFu
 			for _, fn := range backendCancelFuncs {
 				fn()
 			}
+
 			t.exit()
+
 			done <- struct{}{}
 		case <-ticker.C:
 			sizeChanged := t.refreshSize()
@@ -112,6 +135,7 @@ func (t *TermUI) loop(ctx context.Context, done chan<- struct{}, backendCancelFu
 				term.Clear(t.stdout)
 				t.pane.render()
 			}
+
 			if len(t.iterablePanes) > 0 {
 				for _, pane := range t.iterablePanes {
 					pane.iterate()
@@ -125,18 +149,21 @@ func (t *TermUI) exit() {
 	term.Clear(t.stdout)
 }
 
-// refreshSize gets terminal size and caches it
+// refreshSize gets terminal size and caches it.
 func (t *TermUI) refreshSize() bool {
-	w, h, err := term.GetSize()
+	width, height, err := term.GetSize()
 	if err != nil {
 		return false
 	}
-	if t.width != w || t.height != h {
-		t.width = w
-		t.height = h
-		t.pane.setWidth(w)
-		t.pane.setHeight(h)
+
+	if t.width != width || t.height != height {
+		t.width = width
+		t.height = height
+		t.pane.setWidth(width)
+		t.pane.setHeight(height)
+
 		return true
 	}
+
 	return false
 }

@@ -1,19 +1,29 @@
 package termui
 
+// Frame represents one character size frame.
 type Frame struct{}
 
-func (s Frame) C() [8]string {
+// CornerChars contains characters used in a frame.
+func (s Frame) CornerChars() [8]string {
 	return [8]string{"┌", "─", "┐", "│", "┘", "─", "└", "│"}
 }
-func (s Frame) L() int {
+
+// LeftFrameSize returns size of the left frame.
+func (s Frame) LeftFrameSize() int {
 	return 1
 }
-func (s Frame) R() int {
+
+// RightFrameSize returns size of the right frame.
+func (s Frame) RightFrameSize() int {
 	return 1
 }
-func (s Frame) T() int {
+
+// TopFrameSize returns size of the top frame.
+func (s Frame) TopFrameSize() int {
 	return 1
 }
-func (s Frame) B() int {
+
+// BottomFrameSize returns size of the bottom frame.
+func (s Frame) BottomFrameSize() int {
 	return 1
 }

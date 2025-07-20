@@ -8,19 +8,19 @@ import (
 )
 
 type infoPane struct {
-	g *ortotris.Game
+	game *ortotris.Game
 }
 
-func (w *infoPane) Render(pane *termui.Pane) {
+func (p *infoPane) Render(pane *termui.Pane) {
 	pane.Write(0, 0, " ")
 }
 
-func (w infoPane) Iterate(pane *termui.Pane) {
+func (p *infoPane) Iterate(_ *termui.Pane) {
 }
 
-func (w infoPane) HasBackend() bool {
+func (p *infoPane) HasBackend() bool {
 	return false
 }
 
-func (w *infoPane) Backend(ctx context.Context) {
+func (p *infoPane) Backend(_ context.Context) {
 }

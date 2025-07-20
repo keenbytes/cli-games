@@ -1,3 +1,4 @@
 package main
 
-const VERSION = "0.2.1"
+// VERSION contains version of the application.
+const VERSION = "0.5.0"

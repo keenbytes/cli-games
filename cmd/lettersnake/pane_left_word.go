@@ -9,20 +9,21 @@ import (
 )
 
 type leftWordPane struct {
-	g *lettersnake.Game
+	game *lettersnake.Game
 }
 
-func (w *leftWordPane) Render(pane *termui.Pane) {
+func (w *leftWordPane) Render(_ *termui.Pane) {
 }
 
-func (w leftWordPane) Iterate(pane *termui.Pane) {
-	trim := 20 - len(w.g.CurrentTranslation())
-	pane.Write(1, 0, w.g.CurrentTranslation()+strings.Repeat(" ", trim))
+//nolint:mnd
+func (w *leftWordPane) Iterate(pane *termui.Pane) {
+	trim := 20 - len(w.game.CurrentTranslation())
+	pane.Write(1, 0, w.game.CurrentTranslation()+strings.Repeat(" ", trim))
 }
 
-func (w leftWordPane) HasBackend() bool {
+func (w *leftWordPane) HasBackend() bool {
 	return false
 }
 
-func (w *leftWordPane) Backend(ctx context.Context) {
+func (w *leftWordPane) Backend(_ context.Context) {
 }

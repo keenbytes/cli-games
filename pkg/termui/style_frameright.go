@@ -1,19 +1,29 @@
 package termui
 
+// FrameRight represents frame only on the right side.
 type FrameRight struct{}
 
-func (s FrameRight) C() [8]string {
+// CornerChars contains characters used in a frame.
+func (s FrameRight) CornerChars() [8]string {
 	return [8]string{"", "", "", "│", "", "", "", ""}
 }
-func (s FrameRight) L() int {
+
+// LeftFrameSize returns size of the left frame.
+func (s FrameRight) LeftFrameSize() int {
 	return 0
 }
-func (s FrameRight) R() int {
+
+// RightFrameSize returns size of the right frame.
+func (s FrameRight) RightFrameSize() int {
 	return 1
 }
-func (s FrameRight) T() int {
+
+// TopFrameSize returns size of the top frame.
+func (s FrameRight) TopFrameSize() int {
 	return 0
 }
-func (s FrameRight) B() int {
+
+// BottomFrameSize returns size of the bottom frame.
+func (s FrameRight) BottomFrameSize() int {
 	return 0
 }
