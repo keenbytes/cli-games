@@ -99,6 +99,7 @@ func (p *wordsPane) drawInitial(pane *termui.Pane) {
 	}
 }
 
+//nolint:mnd
 func (p *wordsPane) writeWord(pane *termui.Pane, word string, line int) {
 	pane.Write((pane.CanvasWidth()-len(word))/2, line, word)
 }

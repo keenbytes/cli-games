@@ -16,12 +16,12 @@ func (p *rightLetterPane) Render(pane *termui.Pane) {
 	pane.Write(0, 1, "   "+p.game.RightLetter()+"    ")
 }
 
-func (p *rightLetterPane) Iterate(pane *termui.Pane) {
+func (p *rightLetterPane) Iterate(_ *termui.Pane) {
 }
 
 func (p *rightLetterPane) HasBackend() bool {
 	return false
 }
 
-func (p *rightLetterPane) Backend(ctx context.Context) {
+func (p *rightLetterPane) Backend(_ context.Context) {
 }

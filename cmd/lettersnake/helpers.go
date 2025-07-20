@@ -7,7 +7,7 @@ import (
 )
 
 func clearPane(pane *termui.Pane) {
-	for y := 0; y < pane.CanvasHeight(); y++ {
+	for y := range pane.CanvasHeight() {
 		clearPaneLine(pane, y)
 	}
 }

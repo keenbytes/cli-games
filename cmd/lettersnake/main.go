@@ -1,3 +1,4 @@
+// Package main is the entry point for the lettersnake command-line game.
 package main
 
 import (
@@ -5,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"syscall"
@@ -39,34 +41,41 @@ func main() {
 	os.Exit(cli.Run(context.Background()))
 }
 
-func versionHandler(ctx context.Context, c *broccli.Broccli) int {
-	fmt.Fprintf(os.Stdout, VERSION+"\n")
+func versionHandler(_ context.Context, _ *broccli.Broccli) int {
+	_, _ = fmt.Fprintf(os.Stdout, VERSION+"\n")
 
 	return 0
 }
 
-func startHandler(ctx context.Context, c *broccli.Broccli) int {
-	g := lettersnake.NewGame()
+//nolint:contextcheck,mnd
+func startHandler(ctx context.Context, cli *broccli.Broccli) int {
+	game := lettersnake.NewGame()
 
-	f, err := os.Open(c.Flag("words"))
+	file, err := os.Open(filepath.Clean(cli.Flag("words")))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading words from file: %s", err.Error())
 
 		return 1
 	}
-	defer f.Close()
 
-	g.ReadWords(f)
-	g.RandomizeWords()
+	defer func() {
+		err := file.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "error closing words file: %s", err.Error())
+		}
+	}()
 
-	speed := c.Flag("speed")
+	game.ReadWords(file)
+	game.RandomizeWords()
+
+	speed := cli.Flag("speed")
 	if speed == "" {
 		speed = "200"
 	}
 
 	speedInt, _ := strconv.Atoi(speed)
 
-	gui := newGameInterface(g, speedInt)
+	gui := newGameInterface(game, speedInt)
 
 	ctxGui, cancelGui := context.WithCancel(context.Background())
 
@@ -75,21 +84,21 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 
 	quit := make(chan struct{})
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	waitGroup := sync.WaitGroup{}
+	waitGroup.Add(2)
 
 	go func() {
 		gui.run(ctxGui, cancelGui)
 
 		quit <- struct{}{}
 
-		wg.Done()
+		waitGroup.Done()
 	}()
 	go func() {
 		for {
 			select {
 			case <-quit:
-				wg.Done()
+				waitGroup.Done()
 			case <-sigs:
 				cancelGui()
 			case <-ctx.Done():
@@ -98,7 +107,7 @@ func startHandler(ctx context.Context, c *broccli.Broccli) int {
 		}
 	}()
 
-	wg.Wait()
+	waitGroup.Wait()
 
 	return 0
 }

@@ -15,12 +15,12 @@ func (p *infoPane) Render(pane *termui.Pane) {
 	pane.Write(0, 0, " ")
 }
 
-func (p *infoPane) Iterate(pane *termui.Pane) {
+func (p *infoPane) Iterate(_ *termui.Pane) {
 }
 
 func (p *infoPane) HasBackend() bool {
 	return false
 }
 
-func (p *infoPane) Backend(ctx context.Context) {
+func (p *infoPane) Backend(_ context.Context) {
 }

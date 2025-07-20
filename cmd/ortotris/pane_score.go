@@ -13,7 +13,7 @@ type scorePane struct {
 	game *ortotris.Game
 }
 
-func (p *scorePane) Render(pane *termui.Pane) {
+func (p *scorePane) Render(_ *termui.Pane) {
 }
 
 //nolint:mnd
@@ -28,5 +28,5 @@ func (p *scorePane) HasBackend() bool {
 	return false
 }
 
-func (p *scorePane) Backend(ctx context.Context) {
+func (p *scorePane) Backend(_ context.Context) {
 }

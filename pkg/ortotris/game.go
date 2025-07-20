@@ -18,9 +18,6 @@ type Game struct {
 	// letters are two letters to choose from
 	lettersToChooseFrom [2]string
 
-	// currentGuess represents word with a letter selected by the player
-	currentGuess string
-
 	// currentWordListIndex indicates which word from the list is currently being guessed (falling)
 	currentWordListIndex int
 
@@ -29,6 +26,9 @@ type Game struct {
 
 	// currentWordCorrect is the correct answer, so word from the input with correct letter put in it
 	currentWordCorrect string
+
+	// currentGuess represents word with a letter selected by the player
+	currentGuess string
 
 	// numAvailableLines is number of lines available on the screen
 	numAvailableLines int

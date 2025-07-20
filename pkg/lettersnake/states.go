@@ -14,17 +14,17 @@ const (
 
 // Direction represents the direction in which the snake is moving.
 const (
-	// Down indicates that the snake is moving downward.
-	Down = iota
+	// MovingDown indicates that the snake is moving downward.
+	MovingDown = iota
 
-	// Up indicates that the snake is moving upward.
-	Up
+	// MovingUp indicates that the snake is moving upward.
+	MovingUp
 
-	// Left indicates that the snake is moving to the left.
-	Left
+	// MovingLeft indicates that the snake is moving to the left.
+	MovingLeft
 
-	// Right indicates that the snake is moving to the right.
-	Right
+	// MovingRight indicates that the snake is moving to the right.
+	MovingRight
 )
 
 // Game iteration result.

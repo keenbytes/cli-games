@@ -1,3 +1,4 @@
+// Package main is the entry point for the ortotris command-line game.
 package main
 
 import (
@@ -41,13 +42,13 @@ func main() {
 	cli.Run(context.Background())
 }
 
-func versionHandler(ctx context.Context, c *broccli.Broccli) int {
-	fmt.Fprintf(os.Stdout, VERSION+"\n")
+func versionHandler(_ context.Context, _ *broccli.Broccli) int {
+	_, _ = fmt.Fprintf(os.Stdout, VERSION+"\n")
 
 	return 0
 }
 
-//nolint:contextcheck
+//nolint:contextcheck,mnd
 func startHandler(ctx context.Context, cli *broccli.Broccli) int {
 	game := ortotris.NewGame()
 
@@ -89,21 +90,21 @@ func startHandler(ctx context.Context, cli *broccli.Broccli) int {
 
 	quit := make(chan struct{})
 
-	workingGroup := sync.WaitGroup{}
-	workingGroup.Add(2)
+	waitGroup := sync.WaitGroup{}
+	waitGroup.Add(2)
 
 	go func() {
 		gui.run(ctxGui, cancelGui)
 
 		quit <- struct{}{}
 
-		workingGroup.Done()
+		waitGroup.Done()
 	}()
 	go func() {
 		for {
 			select {
 			case <-quit:
-				workingGroup.Done()
+				waitGroup.Done()
 			case <-sigs:
 				cancelGui()
 			case <-ctx.Done():
@@ -112,7 +113,7 @@ func startHandler(ctx context.Context, cli *broccli.Broccli) int {
 		}
 	}()
 
-	workingGroup.Wait()
+	waitGroup.Wait()
 
 	return 0
 }

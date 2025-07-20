@@ -80,6 +80,7 @@ func newGameInterface(game *ortotris.Game, speed int) *gameInterface {
 	return gui
 }
 
+//nolint:mnd
 func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 	waitGroup := sync.WaitGroup{}
 	waitGroup.Add(2)
@@ -127,14 +128,6 @@ func (gui *gameInterface) run(ctx context.Context, cancel func()) {
 			// down arrow pressed
 			if string(input) == "s" {
 				gui.game.SetNextLineToLast()
-			}
-
-			// increase speed
-			if string(input) == "i" {
-			}
-
-			// decrease speed
-			if string(input) == "k" {
 			}
 		}
 
